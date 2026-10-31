@@ -5,7 +5,6 @@ import { usePosts, useDeletePost } from '../hooks/usePosts';
 import { Post } from '../types/post.types';
 import PageHeader from '@/components/shared/PageHeader';
 import DataTable, { Column } from '@/components/shared/DataTable';
-import StatusBadge from '@/components/shared/StatusBadge';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import { Button } from '@/components/ui/button';
 import { getMediaUrl } from '@/lib/utils';
@@ -89,7 +88,20 @@ export default function PostsListPage() {
     {
       header: 'الحالة',
       align: 'center',
-      cell: (item) => <StatusBadge status={item.is_active ?? true} />,
+      cell: (item) => {
+        const isPublished = Boolean(item.published_at && new Date(item.published_at) <= new Date());
+        return (
+          <span
+            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
+              isPublished
+                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+            }`}
+          >
+            {isPublished ? 'منشور' : 'مسودة'}
+          </span>
+        );
+      },
     },
     {
       header: 'الإجراءات',

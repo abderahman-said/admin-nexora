@@ -10,7 +10,6 @@ import { LoadingButton } from '@/components/shared/forms/LoadingButton';
 import { Button } from '@/components/ui/button';
 import { getMediaUrl } from '@/lib/utils';
 import { useEditForm } from '@/hooks/useEditForm';
-import { buildPostPayload } from '../api/postsApi';
 
 const initialDefaultValues: PostFormData = {
   slug: '',
@@ -63,13 +62,11 @@ export default function PostFormPage() {
     isEdit,
     onSubmit: (dirtyValues, allValues) => {
       if (isEdit && id) {
-        const payload = buildPostPayload({ ...dirtyValues, image: coverFile }, true);
-        updatePost(payload, {
+        updatePost({ ...dirtyValues, image: coverFile }, {
           onSuccess: () => navigate('/dashboard/blog'),
         });
       } else {
-        const payload = buildPostPayload({ ...allValues, image: coverFile }, false);
-        createPost(payload, {
+        createPost({ ...allValues, image: coverFile }, {
           onSuccess: () => navigate('/dashboard/blog'),
         });
       }
