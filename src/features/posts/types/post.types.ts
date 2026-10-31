@@ -4,11 +4,11 @@ export interface Post {
   id: number;
   slug: string;
   title: TranslatableField;
-  short_description: TranslatableField;
+  short_description?: TranslatableField | null;
   content: TranslatableField;
-  image?: string | null;
+  image?: { id?: number; url?: string } | string | null;
   image_cover?: string | null;
-  is_active?: boolean;
+  published_at?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -18,6 +18,7 @@ export interface PostFormData {
   title: TranslatableField;
   short_description: TranslatableField;
   content: TranslatableField;
-  is_active?: boolean;
+  published_at?: string | null;
+  is_published?: boolean;
   image?: File | null;
 }

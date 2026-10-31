@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, Save, FileText } from 'lucide-react';
+import { ArrowRight, Save, FileText, Calendar } from 'lucide-react';
 import { usePost, useCreatePost, useUpdatePost } from '../hooks/usePosts';
 import { PostFormData } from '../types/post.types';
 import PageHeader from '@/components/shared/PageHeader';
@@ -10,14 +10,15 @@ import { LoadingButton } from '@/components/shared/forms/LoadingButton';
 import { Button } from '@/components/ui/button';
 import { getMediaUrl } from '@/lib/utils';
 import { useEditForm } from '@/hooks/useEditForm';
-import { createPatchFormData } from '@/lib/dirtyValues';
+import { buildPostPayload } from '../api/postsApi';
 
 const initialDefaultValues: PostFormData = {
   slug: '',
   title: { ar: '', en: '' },
   short_description: { ar: '', en: '' },
   content: { ar: '', en: '' },
-  is_active: true,
+  published_at: null,
+  is_published: true,
 };
 
 export default function PostFormPage() {
@@ -36,12 +37,14 @@ export default function PostFormPage() {
   const recordData = useMemo<PostFormData | null>(() => {
     if (!postRes?.data) return null;
     const p = postRes.data;
+    const isPub = Boolean(p.published_at && new Date(p.published_at) <= new Date());
     return {
       slug: p.slug || '',
       title: { ar: p.title?.ar || '', en: p.title?.en || '' },
       short_description: { ar: p.short_description?.ar || '', en: p.short_description?.en || '' },
       content: { ar: p.content?.ar || '', en: p.content?.en || '' },
-      is_active: p.is_active ?? true,
+      published_at: p.published_at || null,
+      is_published: isPub,
     };
   }, [postRes]);
 
@@ -50,7 +53,7 @@ export default function PostFormPage() {
     : null;
 
   const {
-    form: { register, formState: { errors } },
+    form: { register, watch, formState: { errors } },
     hasChanges,
     handleSubmit,
   } = useEditForm<PostFormData>({
@@ -60,25 +63,20 @@ export default function PostFormPage() {
     isEdit,
     onSubmit: (dirtyValues, allValues) => {
       if (isEdit && id) {
-        // Send file ONLY if new one was selected; send ONLY changed fields
-        if (coverFile) {
-          const fd = createPatchFormData(dirtyValues, { image: coverFile });
-          updatePost(fd, {
-            onSuccess: () => navigate('/dashboard/blog'),
-          });
-        } else {
-          updatePost(dirtyValues, {
-            onSuccess: () => navigate('/dashboard/blog'),
-          });
-        }
+        const payload = buildPostPayload({ ...dirtyValues, image: coverFile }, true);
+        updatePost(payload, {
+          onSuccess: () => navigate('/dashboard/blog'),
+        });
       } else {
-        const payload = { ...allValues, image: coverFile };
+        const payload = buildPostPayload({ ...allValues, image: coverFile }, false);
         createPost(payload, {
           onSuccess: () => navigate('/dashboard/blog'),
         });
       }
     },
   });
+
+  const isPublished = watch('is_published');
 
   if (isEdit && postLoading) {
     return (
@@ -101,7 +99,7 @@ export default function PostFormPage() {
         </Button>
         <PageHeader
           title={isEdit ? 'تعديل المقال' : 'كتابة مقال جديد'}
-          description="أدخل محتوى وتفاصيل المقال والصورة البارزة"
+          description="أدخل تفاصيل ومحتوى المقال وتاريخ النشر باللغتين العربية والإنجليزية"
         />
       </div>
 
@@ -113,7 +111,7 @@ export default function PostFormPage() {
             </div>
             <div>
               <h3 className="font-bold text-foreground">بيانات المقال</h3>
-              <p className="text-xs text-muted-foreground">العنوان والمحتوى بالعربية والإنجليزية</p>
+              <p className="text-xs text-muted-foreground">العنوان والرابط الدائم للمقال</p>
             </div>
           </div>
 
@@ -126,7 +124,7 @@ export default function PostFormPage() {
               type="text"
               dir="ltr"
               disabled={isEdit}
-              placeholder="مثال: how-to-choose-your-stack"
+              placeholder="مثال: how-to-scale-nextjs"
               {...register('slug', { required: !isEdit ? 'الرابط الدائم مطلوب' : false })}
               className={`w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 ${
                 isEdit ? 'opacity-60 cursor-not-allowed bg-muted/30' : ''
@@ -146,7 +144,7 @@ export default function PostFormPage() {
           />
 
           <TranslatableInput
-            label="موجز المقال"
+            label="الوصف المختصر"
             nameAr="short_description.ar"
             nameEn="short_description.en"
             register={register}
@@ -170,23 +168,49 @@ export default function PostFormPage() {
           />
 
           <ImageUploadPreview
-            label="الصورة البارزة للمقال"
+            label="الصورة البارزة للمقال (Cover Image)"
             currentImageUrl={currentCoverUrl}
             onChange={setCoverFile}
             aspectRatio="banner"
           />
 
-          <div className="pt-2 border-t">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                {...register('is_active')}
-                className="w-4 h-4 rounded text-primary focus:ring-primary/40"
-              />
-              <span className="text-sm font-medium text-foreground">
-                نشر المقال (جعله مرئياً في المدونة)
-              </span>
-            </label>
+          {/* Publishing Settings */}
+          <div className="pt-4 border-t space-y-4">
+            <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-primary" />
+              <span>حالة النشر والجدولة (Publishing Status)</span>
+            </h4>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label className="flex items-center gap-2.5 p-3.5 border rounded-xl bg-muted/10 cursor-pointer">
+                <input
+                  type="checkbox"
+                  {...register('is_published')}
+                  className="w-4 h-4 rounded text-primary focus:ring-primary/40"
+                />
+                <div>
+                  <span className="text-sm font-semibold text-foreground block">
+                    نشر المقال الآن
+                  </span>
+                  <span className="text-xs text-muted-foreground block">
+                    إذا تم إلغاء التحديد، سيتم حفظ المقال كمسودة غير مرئية للزوار
+                  </span>
+                </div>
+              </label>
+
+              {isPublished && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground">
+                    تاريخ ووقت النشر المحدد (اختياري للجدولة المستقبلية)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    {...register('published_at')}
+                    className="w-full h-11 px-3.5 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -208,7 +232,7 @@ export default function PostFormPage() {
             className="rounded-xl px-8 flex items-center gap-2"
           >
             <Save className="w-4 h-4" />
-            <span>{isEdit ? 'تحديث المقال' : 'نشر المقال'}</span>
+            <span>{isEdit ? 'تحديث المقال' : 'حفظ المقال'}</span>
           </LoadingButton>
         </div>
       </form>

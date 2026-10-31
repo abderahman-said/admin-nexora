@@ -28,7 +28,7 @@ export function usePost(id: number | string) {
 export function useCreatePost() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: PostFormData) => postsApi.create(data),
+    mutationFn: (data: PostFormData | FormData) => postsApi.create(data),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: postKeys.all });
       toast.success(res.message || 'تم نشر المقال بنجاح');

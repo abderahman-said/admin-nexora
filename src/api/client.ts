@@ -24,9 +24,27 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // If payload is FormData, do not enforce application/json
+    // If payload is FormData, let browser set boundary
     if (config.data instanceof FormData && config.headers) {
       delete config.headers['Content-Type'];
+    }
+
+    if (import.meta.env.DEV) {
+      const method = config.method?.toUpperCase();
+      if (method === 'POST' || method === 'PATCH') {
+        const isFormData = config.data instanceof FormData;
+        console.groupCollapsed(`🚀 [API Request] ${method} ${config.url}`);
+        if (isFormData) {
+          const entries: Record<string, unknown> = {};
+          (config.data as FormData).forEach((val, key) => {
+            entries[key] = val instanceof File ? `[File: ${val.name} (${val.size} bytes)]` : val;
+          });
+          console.log('📦 FormData payload:', entries);
+        } else {
+          console.log('📦 JSON payload:', config.data);
+        }
+        console.groupEnd();
+      }
     }
 
     return config;

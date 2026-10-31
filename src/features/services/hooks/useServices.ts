@@ -28,7 +28,7 @@ export function useService(id: number | string) {
 export function useCreateService() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: ServiceFormData) => servicesApi.create(data),
+    mutationFn: (data: ServiceFormData | FormData) => servicesApi.create(data),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: serviceKeys.all });
       toast.success(res.message || 'تمت إضافة الخدمة بنجاح');
@@ -39,7 +39,7 @@ export function useCreateService() {
 export function useUpdateService(id: number | string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: Partial<ServiceFormData>) => servicesApi.update(id, data),
+    mutationFn: (data: Partial<ServiceFormData> | FormData) => servicesApi.update(id, data),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: serviceKeys.all });
       toast.success(res.message || 'تم تعديل الخدمة بنجاح');
