@@ -32,9 +32,10 @@ export function useCreateUser() {
 export function useUpdateUser(id: number | string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: UpdateUserPayload) => usersApi.update(id, data),
+    mutationFn: (data: Partial<UpdateUserPayload>) => usersApi.update(id, data),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: userKeys.all });
+      queryClient.invalidateQueries({ queryKey: userKeys.detail(id) });
       toast.success(res.message || 'تم تحديث بيانات المستخدم');
     },
   });

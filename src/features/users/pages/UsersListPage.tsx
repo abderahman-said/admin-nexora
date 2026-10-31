@@ -11,6 +11,8 @@ import {
 } from '../hooks/useUsers';
 import { AdminUser, CreateUserPayload, UpdateUserPayload } from '../types/user.types';
 import { UserRole } from '@/features/auth/types/auth.types';
+import toast from 'react-hot-toast';
+import { getDirtyValues } from '@/lib/dirtyValues';
 import PageHeader from '@/components/shared/PageHeader';
 import DataTable, { Column } from '@/components/shared/DataTable';
 import StatusBadge from '@/components/shared/StatusBadge';
@@ -64,8 +66,8 @@ export default function UsersListPage() {
     register: regEdit,
     handleSubmit: handleEditSubmit,
     reset: resetEditForm,
-    formState: { errors: editErrors },
-  } = useForm<UpdateUserPayload>();
+    formState: { errors: editErrors, dirtyFields: editDirtyFields, isDirty: editIsDirty },
+  } = useForm<UpdateUserPayload>({ mode: 'onChange' });
 
   const {
     register: regReset,
@@ -94,7 +96,15 @@ export default function UsersListPage() {
 
   const onEditUser = (data: UpdateUserPayload) => {
     if (selectedUser) {
-      updateUser(data, {
+      const dirty = getDirtyValues(editDirtyFields, data, {
+        name: selectedUser.name || '',
+        email: selectedUser.email || '',
+      });
+      if (Object.keys(dirty).length === 0) {
+        toast('لا توجد تعديلات للحفظ', { icon: 'ℹ️' });
+        return;
+      }
+      updateUser(dirty, {
         onSuccess: () => {
           setEditDialogOpen(false);
           setSelectedUser(null);
@@ -362,6 +372,7 @@ export default function UsersListPage() {
               <LoadingButton
                 type="submit"
                 loading={updatingUser}
+                disabled={!editIsDirty || updatingUser}
                 loadingText="جاري التحديث..."
                 className="rounded-xl px-6"
               >

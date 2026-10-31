@@ -9,6 +9,8 @@ import {
   useToggleTeamMember,
 } from '../hooks/useContent';
 import { TeamMember } from '../types/content.types';
+import toast from 'react-hot-toast';
+import { getDirtyValues, createPatchFormData } from '@/lib/dirtyValues';
 import PageHeader from '@/components/shared/PageHeader';
 import DataTable, { Column } from '@/components/shared/DataTable';
 import StatusBadge from '@/components/shared/StatusBadge';
@@ -44,13 +46,14 @@ export default function TeamMembersPage() {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, dirtyFields, isDirty },
   } = useForm<{
     name: { ar: string; en: string };
     job_title: { ar: string; en: string };
     badge_text: { ar: string; en: string };
     is_active: boolean;
   }>({
+    mode: 'onChange',
     defaultValues: {
       name: { ar: '', en: '' },
       job_title: { ar: '', en: '' },
@@ -90,19 +93,21 @@ export default function TeamMembersPage() {
   };
 
   const onSubmit = (data: any) => {
-    const fd = new FormData();
-    fd.append('name[ar]', data.name.ar);
-    fd.append('name[en]', data.name.en);
-    fd.append('job_title[ar]', data.job_title.ar);
-    fd.append('job_title[en]', data.job_title.en);
-    if (data.badge_text?.ar) fd.append('badge_text[ar]', data.badge_text.ar);
-    if (data.badge_text?.en) fd.append('badge_text[en]', data.badge_text.en);
-    fd.append('is_active', data.is_active ? '1' : '0');
-    if (photoFile) fd.append('image', photoFile);
-
     if (editingMember) {
+      const original = {
+        name: { ar: editingMember.name?.ar || '', en: editingMember.name?.en || '' },
+        job_title: { ar: editingMember.job_title?.ar || '', en: editingMember.job_title?.en || '' },
+        badge_text: { ar: editingMember.badge_text?.ar || '', en: editingMember.badge_text?.en || '' },
+        is_active: editingMember.is_active ?? true,
+      };
+      const dirty = getDirtyValues(dirtyFields, data, original);
+      if (Object.keys(dirty).length === 0 && !photoFile) {
+        toast('لا توجد تعديلات للحفظ', { icon: 'ℹ️' });
+        return;
+      }
+      const patchFd = createPatchFormData(dirty, { image: photoFile });
       updateMember(
-        { id: editingMember.id, data: fd },
+        { id: editingMember.id, data: patchFd },
         {
           onSuccess: () => {
             setModalOpen(false);
@@ -112,6 +117,16 @@ export default function TeamMembersPage() {
         }
       );
     } else {
+      const fd = new FormData();
+      fd.append('name[ar]', data.name.ar);
+      fd.append('name[en]', data.name.en);
+      fd.append('job_title[ar]', data.job_title.ar);
+      fd.append('job_title[en]', data.job_title.en);
+      if (data.badge_text?.ar) fd.append('badge_text[ar]', data.badge_text.ar);
+      if (data.badge_text?.en) fd.append('badge_text[en]', data.badge_text.en);
+      fd.append('is_active', data.is_active ? '1' : '0');
+      if (photoFile) fd.append('image', photoFile);
+
       createMember(fd, {
         onSuccess: () => {
           setModalOpen(false);
@@ -294,6 +309,7 @@ export default function TeamMembersPage() {
               <LoadingButton
                 type="submit"
                 loading={creating || updating}
+                disabled={Boolean(editingMember && !isDirty && !photoFile) || creating || updating}
                 loadingText="جاري الحفظ..."
                 className="rounded-xl px-6"
               >

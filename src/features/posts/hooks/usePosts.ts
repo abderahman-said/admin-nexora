@@ -39,9 +39,10 @@ export function useCreatePost() {
 export function useUpdatePost(id: number | string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: Partial<PostFormData>) => postsApi.update(id, data),
+    mutationFn: (data: Partial<PostFormData> | FormData) => postsApi.update(id, data),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: postKeys.all });
+      queryClient.invalidateQueries({ queryKey: postKeys.detail(id) });
       toast.success(res.message || 'تم تحديث المقال بنجاح');
     },
   });

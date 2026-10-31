@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useMemo } from 'react';
 import { Save, Phone, Globe, Share2 } from 'lucide-react';
 import { useSettings, useUpdateSettings } from '../hooks/useSettings';
 import { SiteSettings } from '../types/settings.types';
@@ -7,6 +6,17 @@ import PageHeader from '@/components/shared/PageHeader';
 import TranslatableInput from '@/components/shared/TranslatableInput';
 import { FormInput } from '@/components/shared/forms/FormInput';
 import { LoadingButton } from '@/components/shared/forms/LoadingButton';
+import { useEditForm } from '@/hooks/useEditForm';
+
+const initialDefaultValues: SiteSettings = {
+  phone: '',
+  whatsapp: '',
+  email: '',
+  facebook_url: '',
+  linkedin_url: '',
+  instagram_url: '',
+  footer_description: { ar: '', en: '' },
+};
 
 export default function SettingsPage() {
   const { data: res, isLoading } = useSettings();
@@ -14,46 +24,44 @@ export default function SettingsPage() {
 
   const settings = res?.data;
 
+  const recordData = useMemo<SiteSettings | null>(() => {
+    if (!settings) return null;
+    return {
+      phone: settings.phone || '',
+      whatsapp: settings.whatsapp || '',
+      email: settings.email || '',
+      facebook_url: settings.facebook_url || '',
+      linkedin_url: settings.linkedin_url || '',
+      instagram_url: settings.instagram_url || '',
+      footer_description: {
+        ar: settings.footer_description?.ar || '',
+        en: settings.footer_description?.en || '',
+      },
+    };
+  }, [settings]);
+
   const {
-    register,
+    form: { register },
+    hasChanges,
     handleSubmit,
-    reset,
-  } = useForm<SiteSettings>({
-    defaultValues: {
-      phone: '',
-      whatsapp: '',
-      email: '',
-      facebook_url: '',
-      linkedin_url: '',
-      instagram_url: '',
-      footer_description: { ar: '', en: '' },
+    resetWithData,
+  } = useEditForm<SiteSettings>({
+    defaultValues: initialDefaultValues,
+    data: recordData,
+    isEdit: true,
+    onSubmit: (dirtyValues, allValues) => {
+      // Send ONLY changed fields in the PATCH request
+      updateSettings(dirtyValues, {
+        onSuccess: () => {
+          resetWithData(allValues);
+        },
+      });
     },
   });
 
-  useEffect(() => {
-    if (settings) {
-      reset({
-        phone: settings.phone || '',
-        whatsapp: settings.whatsapp || '',
-        email: settings.email || '',
-        facebook_url: settings.facebook_url || '',
-        linkedin_url: settings.linkedin_url || '',
-        instagram_url: settings.instagram_url || '',
-        footer_description: {
-          ar: settings.footer_description?.ar || '',
-          en: settings.footer_description?.en || '',
-        },
-      });
-    }
-  }, [settings, reset]);
-
-  const onSubmit = (data: SiteSettings) => {
-    updateSettings(data);
-  };
-
   if (isLoading) {
     return (
-      <div className="p-8 text-center text-muted-foreground animate-pulse">
+      <div className="p-8 text-center text-muted-foreground animate-pulse" dir="rtl">
         جاري تحميل إعدادات الموقع...
       </div>
     );
@@ -66,7 +74,7 @@ export default function SettingsPage() {
         description="إدارة معلومات الاتصال، وسائل التواصل الاجتماعي، وتذييل الموقع"
       />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-4xl">
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
         {/* Contact Info Card */}
         <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-4">
           <div className="flex items-center gap-3 border-b pb-3">
@@ -166,6 +174,7 @@ export default function SettingsPage() {
           <LoadingButton
             type="submit"
             loading={updating}
+            disabled={!hasChanges || updating}
             loadingText="جاري الحفظ..."
             className="rounded-xl px-8 flex items-center gap-2"
           >

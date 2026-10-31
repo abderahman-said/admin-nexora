@@ -9,6 +9,8 @@ import {
   useToggleWorkStep,
 } from '../hooks/useContent';
 import { WorkStep } from '../types/content.types';
+import toast from 'react-hot-toast';
+import { getDirtyValues } from '@/lib/dirtyValues';
 import PageHeader from '@/components/shared/PageHeader';
 import DataTable, { Column } from '@/components/shared/DataTable';
 import StatusBadge from '@/components/shared/StatusBadge';
@@ -41,13 +43,14 @@ export default function WorkStepsPage() {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, dirtyFields, isDirty },
   } = useForm<{
     step_number: number;
     title: { ar: string; en: string };
     description: { ar: string; en: string };
     is_active: boolean;
   }>({
+    mode: 'onChange',
     defaultValues: {
       step_number: 1,
       title: { ar: '', en: '' },
@@ -86,8 +89,19 @@ export default function WorkStepsPage() {
 
   const onSubmit = (data: any) => {
     if (editingStep) {
+      const original = {
+        step_number: editingStep.step_number || 1,
+        title: { ar: editingStep.title?.ar || '', en: editingStep.title?.en || '' },
+        description: { ar: editingStep.description?.ar || '', en: editingStep.description?.en || '' },
+        is_active: editingStep.is_active ?? true,
+      };
+      const dirtyPayload = getDirtyValues(dirtyFields, data, original);
+      if (Object.keys(dirtyPayload).length === 0) {
+        toast('لا توجد تعديلات للحفظ', { icon: 'ℹ️' });
+        return;
+      }
       updateStep(
-        { id: editingStep.id, data },
+        { id: editingStep.id, data: dirtyPayload },
         {
           onSuccess: () => {
             setFormOpen(false);
@@ -264,6 +278,7 @@ export default function WorkStepsPage() {
               <LoadingButton
                 type="submit"
                 loading={creating || updating}
+                disabled={Boolean(editingStep && !isDirty) || creating || updating}
                 loadingText="جاري الحفظ..."
                 className="rounded-xl px-6"
               >

@@ -22,7 +22,7 @@ export const usersApi = {
     return response.data;
   },
 
-  update: async (id: number | string, data: UpdateUserPayload): Promise<ApiResponse<AdminUser>> => {
+  update: async (id: number | string, data: Partial<UpdateUserPayload>): Promise<ApiResponse<AdminUser>> => {
     const response = await apiClient.patch<ApiResponse<AdminUser>>(
       ENDPOINTS.users.update(id),
       data

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'react-hot-toast';
 import { LayoutTemplate, Edit } from 'lucide-react';
 import { usePageSections, useUpdatePageSection } from '../hooks/useContent';
 import { PageSection } from '../types/content.types';
@@ -10,6 +11,7 @@ import ImageUploadPreview from '@/components/shared/ImageUploadPreview';
 import { LoadingButton } from '@/components/shared/forms/LoadingButton';
 import { Button } from '@/components/ui/button';
 import { getMediaUrl } from '@/lib/utils';
+import { getDirtyValues, createPatchFormData } from '@/lib/dirtyValues';
 import {
   Dialog,
   DialogContent,
@@ -31,11 +33,13 @@ export default function PageSectionsPage() {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, dirtyFields, isDirty },
   } = useForm<{
     title: { ar: string; en: string };
     description: { ar: string; en: string };
-  }>();
+  }>({
+    mode: 'onChange',
+  });
 
   useEffect(() => {
     if (selectedSection) {
@@ -58,24 +62,42 @@ export default function PageSectionsPage() {
     setEditOpen(true);
   };
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: { title: { ar: string; en: string }; description: { ar: string; en: string } }) => {
     if (!selectedSection) return;
 
+    const original = {
+      title: {
+        ar: selectedSection.title?.ar || '',
+        en: selectedSection.title?.en || '',
+      },
+      description: {
+        ar: selectedSection.description?.ar || '',
+        en: selectedSection.description?.en || '',
+      },
+    };
+
+    const dirty = getDirtyValues(dirtyFields, data, original);
+
+    if (Object.keys(dirty).length === 0 && !imageFile) {
+      toast('لا توجد تعديلات للحفظ', { icon: 'ℹ️' });
+      return;
+    }
+
     const sectionKey = selectedSection.section_key || selectedSection.slug || '';
-    const fd = new FormData();
-    fd.append('_method', 'PATCH');
-    fd.append('title[ar]', data.title.ar);
-    fd.append('title[en]', data.title.en);
-    if (data.description?.ar) fd.append('description[ar]', data.description.ar);
-    if (data.description?.en) fd.append('description[en]', data.description.en);
-    if (imageFile) fd.append('image', imageFile);
+    const files: Record<string, File> = {};
+    if (imageFile) {
+      files.image = imageFile;
+    }
+
+    const payload = createPatchFormData(dirty, files);
 
     updateSection(
-      { slug: sectionKey, data: fd },
+      { slug: sectionKey, data: payload },
       {
         onSuccess: () => {
           setEditOpen(false);
           setSelectedSection(null);
+          setImageFile(null);
         },
       }
     );
@@ -193,7 +215,13 @@ export default function PageSectionsPage() {
               <Button type="button" variant="outline" onClick={() => setEditOpen(false)} className="rounded-xl">
                 إلغاء
               </Button>
-              <LoadingButton type="submit" loading={updating} loadingText="جاري الحفظ..." className="rounded-xl px-6">
+              <LoadingButton
+                type="submit"
+                loading={updating}
+                loadingText="جاري الحفظ..."
+                disabled={(!isDirty && !imageFile) || updating}
+                className="rounded-xl px-6"
+              >
                 حفظ التعديلات
               </LoadingButton>
             </div>

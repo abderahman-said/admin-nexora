@@ -1,5 +1,4 @@
-import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, Save, Layers } from 'lucide-react';
 import { useService, useCreateService, useUpdateService } from '../hooks/useServices';
@@ -8,6 +7,15 @@ import PageHeader from '@/components/shared/PageHeader';
 import TranslatableInput from '@/components/shared/TranslatableInput';
 import { LoadingButton } from '@/components/shared/forms/LoadingButton';
 import { Button } from '@/components/ui/button';
+import { useEditForm } from '@/hooks/useEditForm';
+
+const initialDefaultValues: ServiceFormData = {
+  slug: '',
+  title: { ar: '', en: '' },
+  short_description: { ar: '', en: '' },
+  full_description: { ar: '', en: '' },
+  is_active: true,
+};
 
 export default function ServiceFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -20,49 +28,44 @@ export default function ServiceFormPage() {
 
   const isSaving = creating || updating;
 
+  // Normalized record data for edit mode
+  const recordData = useMemo<ServiceFormData | null>(() => {
+    if (!serviceRes?.data) return null;
+    const s = serviceRes.data;
+    return {
+      slug: s.slug || '',
+      title: { ar: s.title?.ar || '', en: s.title?.en || '' },
+      short_description: { ar: s.short_description?.ar || '', en: s.short_description?.en || '' },
+      full_description: { ar: s.full_description?.ar || '', en: s.full_description?.en || '' },
+      is_active: s.is_active ?? true,
+    };
+  }, [serviceRes]);
+
   const {
-    register,
+    form: { register, formState: { errors } },
+    hasChanges,
     handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<ServiceFormData>({
-    defaultValues: {
-      slug: '',
-      title: { ar: '', en: '' },
-      short_description: { ar: '', en: '' },
-      full_description: { ar: '', en: '' },
-      is_active: true,
+  } = useEditForm<ServiceFormData>({
+    defaultValues: initialDefaultValues,
+    data: recordData,
+    isEdit,
+    onSubmit: (payload, allValues) => {
+      if (isEdit && id) {
+        // Send ONLY the fields the user actually changed
+        updateService(payload, {
+          onSuccess: () => navigate('/dashboard/services'),
+        });
+      } else {
+        createService(allValues, {
+          onSuccess: () => navigate('/dashboard/services'),
+        });
+      }
     },
   });
 
-  useEffect(() => {
-    if (serviceRes?.data) {
-      const s = serviceRes.data;
-      reset({
-        slug: s.slug || '',
-        title: { ar: s.title?.ar || '', en: s.title?.en || '' },
-        short_description: { ar: s.short_description?.ar || '', en: s.short_description?.en || '' },
-        full_description: { ar: s.full_description?.ar || '', en: s.full_description?.en || '' },
-        is_active: s.is_active ?? true,
-      });
-    }
-  }, [serviceRes, reset]);
-
-  const onSubmit = (data: ServiceFormData) => {
-    if (isEdit && id) {
-      updateService(data, {
-        onSuccess: () => navigate('/dashboard/services'),
-      });
-    } else {
-      createService(data, {
-        onSuccess: () => navigate('/dashboard/services'),
-      });
-    }
-  };
-
   if (isEdit && serviceLoading) {
     return (
-      <div className="p-8 text-center text-muted-foreground animate-pulse">
+      <div className="p-8 text-center text-muted-foreground animate-pulse" dir="rtl">
         جاري تحميل بيانات الخدمة...
       </div>
     );
@@ -85,7 +88,7 @@ export default function ServiceFormPage() {
         />
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-4xl">
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
         <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-6">
           <div className="flex items-center gap-3 border-b pb-4">
             <div className="p-2 rounded-xl bg-primary/10 text-primary">
@@ -99,14 +102,18 @@ export default function ServiceFormPage() {
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-foreground">
-              الرابط الدائم (Slug) <span className="text-destructive">*</span>
+              الرابط الدائم (Slug) {isEdit && <span className="text-xs text-muted-foreground font-normal">(غير قابل للتعديل)</span>}
+              {!isEdit && <span className="text-destructive">*</span>}
             </label>
             <input
               type="text"
               dir="ltr"
+              disabled={isEdit}
               placeholder="مثال: web-development أو mobile-apps"
-              {...register('slug', { required: 'الرابط الدائم مطلوب' })}
-              className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+              {...register('slug', { required: !isEdit ? 'الرابط الدائم مطلوب' : false })}
+              className={`w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                isEdit ? 'opacity-60 cursor-not-allowed bg-muted/30' : ''
+              }`}
             />
             {errors.slug && <p className="text-xs text-destructive">{errors.slug.message}</p>}
           </div>
@@ -170,6 +177,7 @@ export default function ServiceFormPage() {
           <LoadingButton
             type="submit"
             loading={isSaving}
+            disabled={(isEdit && !hasChanges) || isSaving}
             loadingText="جاري الحفظ..."
             className="rounded-xl px-8 flex items-center gap-2"
           >

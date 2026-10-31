@@ -9,6 +9,8 @@ import {
   useToggleTestimonial,
 } from '../hooks/useContent';
 import { Testimonial } from '../types/content.types';
+import toast from 'react-hot-toast';
+import { getDirtyValues } from '@/lib/dirtyValues';
 import PageHeader from '@/components/shared/PageHeader';
 import DataTable, { Column } from '@/components/shared/DataTable';
 import StatusBadge from '@/components/shared/StatusBadge';
@@ -41,7 +43,7 @@ export default function TestimonialsPage() {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, dirtyFields, isDirty },
   } = useForm<{
     client_name: { ar: string; en: string };
     client_job: { ar: string; en: string };
@@ -49,6 +51,7 @@ export default function TestimonialsPage() {
     rating: number;
     is_active: boolean;
   }>({
+    mode: 'onChange',
     defaultValues: {
       client_name: { ar: '', en: '' },
       client_job: { ar: '', en: '' },
@@ -90,8 +93,20 @@ export default function TestimonialsPage() {
 
   const onSubmit = (data: any) => {
     if (editingItem) {
+      const original = {
+        client_name: { ar: editingItem.client_name?.ar || '', en: editingItem.client_name?.en || '' },
+        client_job: { ar: editingItem.client_job?.ar || '', en: editingItem.client_job?.en || '' },
+        comment: { ar: editingItem.comment?.ar || '', en: editingItem.comment?.en || '' },
+        rating: editingItem.rating || 5,
+        is_active: editingItem.is_active ?? true,
+      };
+      const dirty = getDirtyValues(dirtyFields, data, original);
+      if (Object.keys(dirty).length === 0) {
+        toast('لا توجد تعديلات للحفظ', { icon: 'ℹ️' });
+        return;
+      }
       updateTestimonial(
-        { id: editingItem.id, data },
+        { id: editingItem.id, data: dirty },
         {
           onSuccess: () => {
             setFormOpen(false);
@@ -283,6 +298,7 @@ export default function TestimonialsPage() {
                 type="submit"
                 loading={creating || updating}
                 loadingText="جاري الحفظ..."
+                disabled={Boolean(editingItem && !isDirty) || creating || updating}
                 className="rounded-xl px-6"
               >
                 {editingItem ? 'حفظ التعديلات' : 'حفظ التقييم'}

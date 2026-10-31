@@ -28,7 +28,7 @@ export function useProject(id: number | string) {
 export function useCreateProject() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: ProjectFormData) => projectsApi.create(data),
+    mutationFn: (data: ProjectFormData | FormData) => projectsApi.create(data),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: projectKeys.all });
       toast.success(res.message || 'تم إنشاء المشروع بنجاح');
@@ -39,9 +39,10 @@ export function useCreateProject() {
 export function useUpdateProject(id: number | string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: Partial<ProjectFormData>) => projectsApi.update(id, data),
+    mutationFn: (data: Partial<ProjectFormData> | FormData) => projectsApi.update(id, data),
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: projectKeys.all });
+      queryClient.invalidateQueries({ queryKey: projectKeys.detail(id) });
       toast.success(res.message || 'تم تحديث المشروع بنجاح');
     },
   });

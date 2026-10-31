@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight, Save, FileText } from 'lucide-react';
 import { usePost, useCreatePost, useUpdatePost } from '../hooks/usePosts';
@@ -10,6 +9,16 @@ import ImageUploadPreview from '@/components/shared/ImageUploadPreview';
 import { LoadingButton } from '@/components/shared/forms/LoadingButton';
 import { Button } from '@/components/ui/button';
 import { getMediaUrl } from '@/lib/utils';
+import { useEditForm } from '@/hooks/useEditForm';
+import { createPatchFormData } from '@/lib/dirtyValues';
+
+const initialDefaultValues: PostFormData = {
+  slug: '',
+  title: { ar: '', en: '' },
+  short_description: { ar: '', en: '' },
+  content: { ar: '', en: '' },
+  is_active: true,
+};
 
 export default function PostFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -17,7 +26,6 @@ export default function PostFormPage() {
   const navigate = useNavigate();
 
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [currentCoverUrl, setCurrentCoverUrl] = useState<string | null>(null);
 
   const { data: postRes, isLoading: postLoading } = usePost(id || '');
   const { mutate: createPost, isPending: creating } = useCreatePost();
@@ -25,51 +33,56 @@ export default function PostFormPage() {
 
   const isSaving = creating || updating;
 
+  const recordData = useMemo<PostFormData | null>(() => {
+    if (!postRes?.data) return null;
+    const p = postRes.data;
+    return {
+      slug: p.slug || '',
+      title: { ar: p.title?.ar || '', en: p.title?.en || '' },
+      short_description: { ar: p.short_description?.ar || '', en: p.short_description?.en || '' },
+      content: { ar: p.content?.ar || '', en: p.content?.en || '' },
+      is_active: p.is_active ?? true,
+    };
+  }, [postRes]);
+
+  const currentCoverUrl = postRes?.data
+    ? getMediaUrl(postRes.data.image) || getMediaUrl(postRes.data.image_cover) || null
+    : null;
+
   const {
-    register,
+    form: { register, formState: { errors } },
+    hasChanges,
     handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm<PostFormData>({
-    defaultValues: {
-      slug: '',
-      title: { ar: '', en: '' },
-      short_description: { ar: '', en: '' },
-      content: { ar: '', en: '' },
-      is_active: true,
+  } = useEditForm<PostFormData>({
+    defaultValues: initialDefaultValues,
+    data: recordData,
+    files: { image: coverFile },
+    isEdit,
+    onSubmit: (dirtyValues, allValues) => {
+      if (isEdit && id) {
+        // Send file ONLY if new one was selected; send ONLY changed fields
+        if (coverFile) {
+          const fd = createPatchFormData(dirtyValues, { image: coverFile });
+          updatePost(fd, {
+            onSuccess: () => navigate('/dashboard/blog'),
+          });
+        } else {
+          updatePost(dirtyValues, {
+            onSuccess: () => navigate('/dashboard/blog'),
+          });
+        }
+      } else {
+        const payload = { ...allValues, image: coverFile };
+        createPost(payload, {
+          onSuccess: () => navigate('/dashboard/blog'),
+        });
+      }
     },
   });
 
-  useEffect(() => {
-    if (postRes?.data) {
-      const p = postRes.data;
-      reset({
-        slug: p.slug || '',
-        title: { ar: p.title?.ar || '', en: p.title?.en || '' },
-        short_description: { ar: p.short_description?.ar || '', en: p.short_description?.en || '' },
-        content: { ar: p.content?.ar || '', en: p.content?.en || '' },
-        is_active: p.is_active ?? true,
-      });
-      setCurrentCoverUrl(getMediaUrl(p.image) || getMediaUrl(p.image_cover) || null);
-    }
-  }, [postRes, reset]);
-
-  const onSubmit = (data: PostFormData) => {
-    const payload = { ...data, image: coverFile };
-    if (isEdit && id) {
-      updatePost(payload, {
-        onSuccess: () => navigate('/dashboard/blog'),
-      });
-    } else {
-      createPost(payload, {
-        onSuccess: () => navigate('/dashboard/blog'),
-      });
-    }
-  };
-
   if (isEdit && postLoading) {
     return (
-      <div className="p-8 text-center text-muted-foreground animate-pulse">
+      <div className="p-8 text-center text-muted-foreground animate-pulse" dir="rtl">
         جاري تحميل تفاصيل المقال...
       </div>
     );
@@ -92,7 +105,7 @@ export default function PostFormPage() {
         />
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-4xl">
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
         <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-6">
           <div className="flex items-center gap-3 border-b pb-4">
             <div className="p-2 rounded-xl bg-primary/10 text-primary">
@@ -106,14 +119,18 @@ export default function PostFormPage() {
 
           <div className="space-y-2">
             <label className="text-sm font-semibold text-foreground">
-              الرابط الدائم (Slug) <span className="text-destructive">*</span>
+              الرابط الدائم (Slug) {isEdit && <span className="text-xs text-muted-foreground font-normal">(غير قابل للتعديل)</span>}
+              {!isEdit && <span className="text-destructive">*</span>}
             </label>
             <input
               type="text"
               dir="ltr"
+              disabled={isEdit}
               placeholder="مثال: how-to-choose-your-stack"
-              {...register('slug', { required: 'الرابط الدائم مطلوب' })}
-              className="w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40"
+              {...register('slug', { required: !isEdit ? 'الرابط الدائم مطلوب' : false })}
+              className={`w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 ${
+                isEdit ? 'opacity-60 cursor-not-allowed bg-muted/30' : ''
+              }`}
             />
             {errors.slug && <p className="text-xs text-destructive">{errors.slug.message}</p>}
           </div>
@@ -186,6 +203,7 @@ export default function PostFormPage() {
           <LoadingButton
             type="submit"
             loading={isSaving}
+            disabled={(isEdit && !hasChanges) || isSaving}
             loadingText="جاري الحفظ..."
             className="rounded-xl px-8 flex items-center gap-2"
           >
