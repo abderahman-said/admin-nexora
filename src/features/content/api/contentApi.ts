@@ -46,12 +46,20 @@ export const contentApi = {
     const res = await apiClient.patch<ApiResponse<WorkStep>>(ENDPOINTS.content.workSteps.update(id), payload);
     return res.data;
   },
+  getWorkStepById: async (id: number | string): Promise<ApiResponse<WorkStep>> => {
+    const res = await apiClient.get<ApiResponse<WorkStep>>(ENDPOINTS.content.workSteps.detail(id));
+    return res.data;
+  },
   deleteWorkStep: async (id: number | string): Promise<ApiResponse<null>> => {
     const res = await apiClient.delete<ApiResponse<null>>(ENDPOINTS.content.workSteps.delete(id));
     return res.data;
   },
   toggleWorkStep: async (id: number | string): Promise<ApiResponse<WorkStep>> => {
     const res = await apiClient.patch<ApiResponse<WorkStep>>(ENDPOINTS.content.workSteps.toggle(id), { field: 'is_active' });
+    return res.data;
+  },
+  reorderWorkSteps: async (ids: number[]): Promise<ApiResponse<null>> => {
+    const res = await apiClient.post<ApiResponse<null>>(ENDPOINTS.content.workSteps.reorder, { ids });
     return res.data;
   },
 
@@ -77,12 +85,20 @@ export const contentApi = {
     const res = await apiClient.post<ApiResponse<TeamMember>>(ENDPOINTS.content.teamMembers.update(id), payload);
     return res.data;
   },
+  getTeamMemberById: async (id: number | string): Promise<ApiResponse<TeamMember>> => {
+    const res = await apiClient.get<ApiResponse<TeamMember>>(ENDPOINTS.content.teamMembers.detail(id));
+    return res.data;
+  },
   deleteTeamMember: async (id: number | string): Promise<ApiResponse<null>> => {
     const res = await apiClient.delete<ApiResponse<null>>(ENDPOINTS.content.teamMembers.delete(id));
     return res.data;
   },
   toggleTeamMember: async (id: number | string): Promise<ApiResponse<TeamMember>> => {
     const res = await apiClient.patch<ApiResponse<TeamMember>>(ENDPOINTS.content.teamMembers.toggle(id), { field: 'is_active' });
+    return res.data;
+  },
+  reorderTeamMembers: async (ids: number[]): Promise<ApiResponse<null>> => {
+    const res = await apiClient.post<ApiResponse<null>>(ENDPOINTS.content.teamMembers.reorder, { ids });
     return res.data;
   },
 
@@ -112,12 +128,20 @@ export const contentApi = {
     const res = await apiClient.patch<ApiResponse<Testimonial>>(ENDPOINTS.content.testimonials.update(id), payload);
     return res.data;
   },
+  getTestimonialById: async (id: number | string): Promise<ApiResponse<Testimonial>> => {
+    const res = await apiClient.get<ApiResponse<Testimonial>>(ENDPOINTS.content.testimonials.detail(id));
+    return res.data;
+  },
   deleteTestimonial: async (id: number | string): Promise<ApiResponse<null>> => {
     const res = await apiClient.delete<ApiResponse<null>>(ENDPOINTS.content.testimonials.delete(id));
     return res.data;
   },
   toggleTestimonial: async (id: number | string): Promise<ApiResponse<Testimonial>> => {
     const res = await apiClient.patch<ApiResponse<Testimonial>>(ENDPOINTS.content.testimonials.toggle(id), { field: 'is_active' });
+    return res.data;
+  },
+  reorderTestimonials: async (ids: number[]): Promise<ApiResponse<null>> => {
+    const res = await apiClient.post<ApiResponse<null>>(ENDPOINTS.content.testimonials.reorder, { ids });
     return res.data;
   },
 
