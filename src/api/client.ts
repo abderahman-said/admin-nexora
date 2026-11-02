@@ -6,7 +6,7 @@ import { ApiErrorResponse } from './types';
 
 export const AUTH_COOKIE_NAME = 'authToken';
 
-const baseURL = import.meta.env.VITE_API_URL || 'https://basma-backend-production.up.railway.app/api/v1';
+const baseURL = import.meta.env.VITE_API_URL || 'https://nexora-solutions.co/api/v1';
 
 export const apiClient = axios.create({
   baseURL,
