@@ -1,79 +1,30 @@
-import { useState, useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowRight, Save, FileText, Calendar } from 'lucide-react';
-import { usePost, useCreatePost, useUpdatePost } from '../hooks/usePosts';
-import { PostFormData } from '../types/post.types';
+import { ArrowRight, Save, FileText } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import PageHeader from '@/components/shared/PageHeader';
 import TranslatableInput from '@/components/shared/TranslatableInput';
 import ImageUploadPreview from '@/components/shared/ImageUploadPreview';
 import { LoadingButton } from '@/components/shared/forms/LoadingButton';
-import { Button } from '@/components/ui/button';
-import { getMediaUrl } from '@/lib/utils';
-import { useEditForm } from '@/hooks/useEditForm';
-
-const initialDefaultValues: PostFormData = {
-  slug: '',
-  title: { ar: '', en: '' },
-  short_description: { ar: '', en: '' },
-  content: { ar: '', en: '' },
-  published_at: null,
-  is_published: true,
-};
+import { toKebabCase, isValidKebabCase } from '@/lib/utils';
+import { usePostForm } from '../hooks/usePostForm';
+import { PostPublishSettings } from '../components/PostPublishSettings';
 
 export default function PostFormPage() {
-  const { id } = useParams<{ id: string }>();
-  const isEdit = Boolean(id);
-  const navigate = useNavigate();
-
-  const [coverFile, setCoverFile] = useState<File | null>(null);
-
-  const { data: postRes, isLoading: postLoading } = usePost(id || '');
-  const { mutate: createPost, isPending: creating } = useCreatePost();
-  const { mutate: updatePost, isPending: updating } = useUpdatePost(id || '');
-
-  const isSaving = creating || updating;
-
-  const recordData = useMemo<PostFormData | null>(() => {
-    if (!postRes?.data) return null;
-    const p = postRes.data;
-    const isPub = Boolean(p.published_at && new Date(p.published_at) <= new Date());
-    return {
-      slug: p.slug || '',
-      title: { ar: p.title?.ar || '', en: p.title?.en || '' },
-      short_description: { ar: p.short_description?.ar || '', en: p.short_description?.en || '' },
-      content: { ar: p.content?.ar || '', en: p.content?.en || '' },
-      published_at: p.published_at || null,
-      is_published: isPub,
-    };
-  }, [postRes]);
-
-  const currentCoverUrl = postRes?.data
-    ? getMediaUrl(postRes.data.image) || getMediaUrl(postRes.data.image_cover) || null
-    : null;
-
   const {
-    form: { register, watch, formState: { errors } },
+    isEdit,
+    postLoading,
+    currentCoverUrl,
+    setCoverFile,
+    isSaving,
     hasChanges,
     handleSubmit,
-  } = useEditForm<PostFormData>({
-    defaultValues: initialDefaultValues,
-    data: recordData,
-    files: { image: coverFile },
-    isEdit,
-    onSubmit: (dirtyValues, allValues) => {
-      if (isEdit && id) {
-        updatePost({ ...dirtyValues, image: coverFile }, {
-          onSuccess: () => navigate('/dashboard/blog'),
-        });
-      } else {
-        createPost({ ...allValues, image: coverFile }, {
-          onSuccess: () => navigate('/dashboard/blog'),
-        });
-      }
-    },
-  });
-
-  const isPublished = watch('is_published');
+    register,
+    watch,
+    setValue,
+    errors,
+    isPublished,
+    navigate,
+  } = usePostForm();
 
   if (isEdit && postLoading) {
     return (
@@ -84,7 +35,7 @@ export default function PostFormPage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6" dir="rtl">
+    <div className="max-w-7xl mx-auto space-y-6 p-4 md:p-6 lg:p-8" dir="rtl">
       <div className="flex items-center gap-3">
         <Button
           variant="outline"
@@ -100,7 +51,7 @@ export default function PostFormPage() {
         />
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl">
+      <form onSubmit={handleSubmit} className="space-y-6 max-w-4xl mx-auto">
         <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-6">
           <div className="flex items-center gap-3 border-b pb-4">
             <div className="p-2 rounded-xl bg-primary/10 text-primary">
@@ -112,22 +63,67 @@ export default function PostFormPage() {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-foreground">
-              الرابط الدائم (Slug) {isEdit && <span className="text-xs text-muted-foreground font-normal">(غير قابل للتعديل)</span>}
-              {!isEdit && <span className="text-destructive">*</span>}
-            </label>
-            <input
+          <div className="space-y-1.5">
+            <div className="h-5 flex items-center justify-between">
+              <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                <span>الرابط الدائم (Slug)</span>
+                {!isEdit && <span className="text-danger">*</span>}
+                {isEdit && (
+                  <span className="text-[11px] text-muted-foreground font-normal">
+                    (غير قابل للتعديل)
+                  </span>
+                )}
+              </label>
+            </div>
+            <Input
               type="text"
               dir="ltr"
               disabled={isEdit}
               placeholder="مثال: how-to-scale-nextjs"
-              {...register('slug', { required: !isEdit ? 'الرابط الدائم مطلوب' : false })}
-              className={`w-full h-11 px-4 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 ${
-                isEdit ? 'opacity-60 cursor-not-allowed bg-muted/30' : ''
-              }`}
+              error={Boolean(errors.slug)}
+              value={watch('slug') || ''}
+              {...register('slug', {
+                required: !isEdit ? 'الرابط الدائم (Slug) مطلوب' : false,
+                maxLength: { value: 100, message: 'الحد الأقصى للرابط هو 100 حرف' },
+                validate: (val) => {
+                  if (isEdit) return true;
+                  if (!val || !val.trim()) return 'الرابط الدائم (Slug) مطلوب';
+                  if (!isValidKebabCase(val)) {
+                    return 'يجب أن يكون معرّفًا بصيغة kebab-case (أحرف إنجليزية صغيرة وأرقام وشرطات فقط بدون مسافات)';
+                  }
+                  return true;
+                },
+              })}
+              onChange={(e) => {
+                const raw = e.target.value
+                  .toLowerCase()
+                  .replace(/\s+/g, '-')
+                  .replace(/[^a-z0-9-]/g, '')
+                  .replace(/-+/g, '-');
+                setValue('slug', raw, { shouldDirty: true, shouldValidate: true });
+              }}
+              onBlur={() => {
+                const current = watch('slug') || '';
+                if (current) {
+                  const cleaned = toKebabCase(current);
+                  setValue('slug', cleaned, { shouldDirty: true, shouldValidate: true });
+                }
+              }}
+              className={
+                isEdit
+                  ? 'opacity-60 cursor-not-allowed bg-muted/30 font-mono text-xs'
+                  : 'font-mono text-xs'
+              }
             />
-            {errors.slug && <p className="text-xs text-destructive">{errors.slug.message}</p>}
+            {errors.slug ? (
+              <p className="text-xs text-danger font-medium">{errors.slug.message}</p>
+            ) : (
+              !isEdit && (
+                <p className="text-[11px] text-muted-foreground font-mono">
+                  أحرف إنجليزية صغيرة وأرقام وشرطات فقط بدون مسافات (kebab-case)
+                </p>
+              )
+            )}
           </div>
 
           <TranslatableInput
@@ -171,44 +167,7 @@ export default function PostFormPage() {
             aspectRatio="banner"
           />
 
-          {/* Publishing Settings */}
-          <div className="pt-4 border-t space-y-4">
-            <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-primary" />
-              <span>حالة النشر والجدولة (Publishing Status)</span>
-            </h4>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label className="flex items-center gap-2.5 p-3.5 border rounded-xl bg-muted/10 cursor-pointer">
-                <input
-                  type="checkbox"
-                  {...register('is_published')}
-                  className="w-4 h-4 rounded text-primary focus:ring-primary/40"
-                />
-                <div>
-                  <span className="text-sm font-semibold text-foreground block">
-                    نشر المقال الآن
-                  </span>
-                  <span className="text-xs text-muted-foreground block">
-                    إذا تم إلغاء التحديد، سيتم حفظ المقال كمسودة غير مرئية للزوار
-                  </span>
-                </div>
-              </label>
-
-              {isPublished && (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-foreground">
-                    تاريخ ووقت النشر المحدد (اختياري للجدولة المستقبلية)
-                  </label>
-                  <input
-                    type="datetime-local"
-                    {...register('published_at')}
-                    className="w-full h-11 px-3.5 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/40"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+          <PostPublishSettings register={register} isPublished={Boolean(isPublished)} />
         </div>
 
         <div className="flex items-center justify-end gap-3">

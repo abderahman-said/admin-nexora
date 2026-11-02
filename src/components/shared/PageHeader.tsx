@@ -14,20 +14,20 @@ export default function PageHeader({
   children,
 }: PageHeaderProps) {
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-border/50">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight font-sans">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-border">
+      <div className="space-y-1">
+        <h1 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
           {title}
         </h1>
         {description && (
-          <p className="text-sm text-muted-foreground mt-1 font-sans">
+          <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-2xl">
             {description}
           </p>
         )}
       </div>
 
       {(action || children) && (
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
           {action}
           {children}
         </div>

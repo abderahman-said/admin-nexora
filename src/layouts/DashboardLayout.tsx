@@ -19,7 +19,11 @@ export default function DashboardLayout() {
       />
 
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
-        <TopNavbar onMenuClick={toggleMobile} onToggleCollapse={toggleCollapse} />
+        <TopNavbar
+          onMenuClick={toggleMobile}
+          onToggleCollapse={toggleCollapse}
+          collapsed={collapsed}
+        />
 
         <main className="flex-1 overflow-y-auto">
           <div className="min-h-full">

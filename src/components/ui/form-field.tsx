@@ -84,20 +84,33 @@ const FormControl = React.forwardRef<HTMLInputElement, FormControlProps>(({ type
   }, [type, options])
 
   if (type === "select" && options) {
-    const { onChange, onBlur, placeholder, disabled, required, name } = props
+    const { onChange, onBlur, placeholder, disabled, required, name, value } = props
+    const selectedOption = options.find((opt) => {
+      const optVal = typeof opt === 'string' ? opt : opt.value;
+      return String(optVal) === String(value ?? '');
+    });
+    const selectedLabel = selectedOption
+      ? typeof selectedOption === 'string'
+        ? selectedOption
+        : selectedOption.label
+      : undefined;
+
     return (
       <Select
+        value={value !== undefined && value !== null ? String(value) : undefined}
         disabled={disabled}
         required={required}
-        onValueChange={(value) => {
-          onChange?.({ target: { value, name } } as React.ChangeEvent<HTMLInputElement>)
+        onValueChange={(val) => {
+          onChange?.({ target: { value: val, name } } as React.ChangeEvent<HTMLInputElement>)
         }}
         onOpenChange={(open) => {
           if (!open && onBlur) onBlur({ target: { name, value: props.value || '' } } as React.FocusEvent<HTMLInputElement>)
         }}
       >
         <SelectTrigger type="button" className={inputClassName}>
-          <SelectValue placeholder={placeholder} />
+          <SelectValue placeholder={placeholder}>
+            {selectedLabel}
+          </SelectValue>
         </SelectTrigger>
         {selectContent}
       </Select>

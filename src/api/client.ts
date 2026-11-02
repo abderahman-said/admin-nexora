@@ -31,7 +31,7 @@ apiClient.interceptors.request.use(
 
     if (import.meta.env.DEV) {
       const method = config.method?.toUpperCase();
-      if (method === 'POST' || method === 'PATCH') {
+      if (method === 'POST' || method === 'PATCH' || method === 'PUT') {
         const isFormData = config.data instanceof FormData;
         console.groupCollapsed(`🚀 [API Request] ${method} ${config.url}`);
         if (isFormData) {
@@ -40,8 +40,14 @@ apiClient.interceptors.request.use(
             entries[key] = val instanceof File ? `[File: ${val.name} (${val.size} bytes)]` : val;
           });
           console.log('📦 FormData payload:', entries);
-        } else {
+        } else if (config.data && typeof config.data === 'object') {
           console.log('📦 JSON payload:', config.data);
+          const undefinedKeys = Object.entries(config.data as Record<string, unknown>)
+            .filter(([, v]) => v === undefined)
+            .map(([k]) => k);
+          if (undefinedKeys.length > 0) {
+            console.warn(`⚠️ [API Warning] Fields with undefined value dropped by JSON.stringify:`, undefinedKeys);
+          }
         }
         console.groupEnd();
       }

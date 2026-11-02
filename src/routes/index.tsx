@@ -59,10 +59,13 @@ function ProtectedRoute({ children }: ProtectedRouteProps) {
 
 function PageLoader() {
   return (
-    <div className="flex h-screen items-center justify-center bg-background" dir="rtl">
-      <div className="flex flex-col items-center gap-4">
-        <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        <p className="text-sm font-medium text-muted-foreground animate-pulse">جاري التحميل...</p>
+    <div className="flex h-screen items-center justify-center bg-background_main" dir="rtl">
+      <div className="flex flex-col items-center gap-3">
+        <div className="h-9 w-9 rounded-2xl bg-primary-subtle text-primary border border-primary/20 flex items-center justify-center font-bold text-sm shadow-xs animate-bounce">
+          N
+        </div>
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <p className="text-xs font-medium text-muted-foreground">جاري تحميل الصفحة...</p>
       </div>
     </div>
   );

@@ -32,39 +32,51 @@ export default function ConfirmDialog({
   loading = false,
   onConfirm,
 }: ConfirmDialogProps) {
+  const isDestructive = variant === 'destructive';
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]" dir="rtl">
-        <DialogHeader className="text-right">
-          <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-full ${variant === 'destructive' ? 'bg-destructive/10 text-destructive' : 'bg-primary/10 text-primary'}`}>
-              <AlertTriangle className="w-5 h-5" />
+      <DialogContent className="sm:max-w-[420px]" dir="rtl">
+        <DialogHeader className="text-start">
+          <div className="flex items-start gap-3">
+            <div
+              className={`p-2.5 rounded-xl shrink-0 ${
+                isDestructive
+                  ? 'bg-danger-subtle text-danger border border-danger/20'
+                  : 'bg-primary-subtle text-primary border border-primary/20'
+              }`}
+            >
+              <AlertTriangle className="w-5 h-5" strokeWidth={1.75} />
             </div>
-            <DialogTitle className="text-lg font-bold">{title}</DialogTitle>
+            <div className="space-y-1">
+              <DialogTitle className="text-base font-bold text-foreground">
+                {title}
+              </DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
+                {description}
+              </DialogDescription>
+            </div>
           </div>
-          <DialogDescription className="pt-2 text-sm text-muted-foreground leading-relaxed">
-            {description}
-          </DialogDescription>
         </DialogHeader>
 
-        <DialogFooter className="flex-row-reverse sm:justify-start gap-2 pt-4">
-          <Button
-            type="button"
-            variant={variant}
-            onClick={onConfirm}
-            disabled={loading}
-            className="flex-1 sm:flex-none"
-          >
-            {loading ? 'جاري التنفيذ...' : confirmText}
-          </Button>
+        <DialogFooter className="flex-row sm:justify-end gap-2 pt-4">
           <Button
             type="button"
             variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={loading}
-            className="flex-1 sm:flex-none"
+            className="flex-1 sm:flex-none text-xs"
           >
             {cancelText}
+          </Button>
+          <Button
+            type="button"
+            variant={isDestructive ? 'destructive' : 'default'}
+            onClick={onConfirm}
+            disabled={loading}
+            className="flex-1 sm:flex-none text-xs"
+          >
+            {loading ? 'جاري التنفيذ...' : confirmText}
           </Button>
         </DialogFooter>
       </DialogContent>

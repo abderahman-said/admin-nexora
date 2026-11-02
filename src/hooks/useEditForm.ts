@@ -8,6 +8,7 @@ import {
 } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { getDirtyValues, hasFormChanges } from '@/lib/dirtyValues';
+import { handleFormErrors } from '@/lib/formUtils';
 
 export interface UseEditFormOptions<T extends FieldValues> {
   defaultValues: T;
@@ -38,6 +39,19 @@ export interface UseEditFormReturn<T extends FieldValues> {
  * 5. Button disable state is easily derived from !hasChanges.
  * 6. After successful update, resets with new data to cleanly reset dirty state.
  */
+function deepClone<T>(obj: T): T {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (obj instanceof File || obj instanceof Blob) return obj;
+  if (Array.isArray(obj)) {
+    return obj.map((item) => deepClone(item)) as unknown as T;
+  }
+  const copy: Record<string, unknown> = {};
+  for (const key of Object.keys(obj as Record<string, unknown>)) {
+    copy[key] = deepClone((obj as Record<string, unknown>)[key]);
+  }
+  return copy as T;
+}
+
 export function useEditForm<T extends FieldValues>({
   defaultValues,
   data,
@@ -47,7 +61,7 @@ export function useEditForm<T extends FieldValues>({
   noChangesMessage = 'لا توجد تعديلات للحفظ',
   isEdit = true,
 }: UseEditFormOptions<T>): UseEditFormReturn<T> {
-  const originalValuesRef = useRef<T | undefined>(data || undefined);
+  const originalValuesRef = useRef<T | undefined>(data ? deepClone(data) : undefined);
 
   const form = useForm<T>({
     mode: 'onChange',
@@ -68,14 +82,14 @@ export function useEditForm<T extends FieldValues>({
   // Reset form when external record data loads or changes
   useEffect(() => {
     if (data) {
-      originalValuesRef.current = data;
+      originalValuesRef.current = deepClone(data);
       reset(data as DefaultValues<T>);
     }
   }, [data, reset]);
 
   const resetWithData = useCallback(
     (newData: T) => {
-      originalValuesRef.current = newData;
+      originalValuesRef.current = deepClone(newData);
       reset(newData as DefaultValues<T>);
     },
     [reset]
@@ -98,15 +112,20 @@ export function useEditForm<T extends FieldValues>({
 
   const isDirty = hasChanges;
 
-  const handleSubmit = formHandleSubmit(async (allValues) => {
-    if (isEdit && !hasChanges) {
-      toast(noChangesMessage, { icon: 'ℹ️' });
-      return;
-    }
+  const handleSubmit = formHandleSubmit(
+    async (allValues) => {
+      if (isEdit && !hasChanges) {
+        toast(noChangesMessage, { icon: 'ℹ️' });
+        return;
+      }
 
-    const payload = isEdit ? getDirtyPayload() : allValues;
-    await onSubmit(payload, allValues);
-  });
+      const payload = isEdit ? getDirtyPayload() : allValues;
+      await onSubmit(payload, allValues);
+    },
+    (errors) => {
+      handleFormErrors(errors);
+    }
+  );
 
   return {
     form,

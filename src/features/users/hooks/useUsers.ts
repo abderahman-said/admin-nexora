@@ -21,7 +21,18 @@ export function useUsers(params?: PaginationParams) {
 export function useCreateUser() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateUserPayload) => usersApi.create(data),
+    mutationFn: async (data: CreateUserPayload) => {
+      const res = await usersApi.create(data);
+      if (data.role && data.role !== 'observer' && res.data?.id) {
+        try {
+          await usersApi.changeRole(res.data.id, data.role);
+          res.data.role = data.role;
+        } catch (e) {
+          console.warn('[Users] Failed to update role after creation:', e);
+        }
+      }
+      return res;
+    },
     onSuccess: (res) => {
       queryClient.invalidateQueries({ queryKey: userKeys.all });
       toast.success(res.message || 'تمت إضافة المستخدم بنجاح');

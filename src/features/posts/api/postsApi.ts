@@ -39,12 +39,34 @@ export function buildPostPayload(data: Partial<PostFormData>, isEdit = false): F
   if (data.title?.en) fd.append('title[en]', data.title.en);
   if (data.short_description?.ar) fd.append('short_description[ar]', data.short_description.ar);
   if (data.short_description?.en) fd.append('short_description[en]', data.short_description.en);
-  if (data.content?.ar) fd.append('content[ar]', data.content.ar);
-  if (data.content?.en) fd.append('content[en]', data.content.en);
+  if (data.content) {
+    if (data.content.ar !== undefined) fd.append('content[ar]', data.content.ar || '');
+    if (data.content.en !== undefined) fd.append('content[en]', data.content.en || '');
+  }
   if (publishedAt) fd.append('published_at', publishedAt);
   if (data.image instanceof File) fd.append('image', data.image);
 
   return fd;
+}
+
+import { validateDevPayload } from '@/lib/payloadUtils';
+
+export function toPostCreatePayload(
+  data: PostFormData,
+  imageFile?: File | null
+): FormData | Record<string, unknown> {
+  const merged = { ...data, image: imageFile ?? data.image };
+  const payload = buildPostPayload(merged, false);
+  validateDevPayload('Post Create', payload, ['slug', 'title', 'content']);
+  return payload;
+}
+
+export function toPostUpdatePayload(
+  data: Partial<PostFormData>,
+  imageFile?: File | null
+): FormData | Record<string, unknown> {
+  const merged = { ...data, image: imageFile ?? data.image };
+  return buildPostPayload(merged, true);
 }
 
 export const postsApi = {
@@ -60,25 +82,32 @@ export const postsApi = {
     return response.data;
   },
 
-  create: async (data: PostFormData | FormData): Promise<ApiResponse<Post>> => {
-    const payload = data instanceof FormData ? data : buildPostPayload(data, false);
+  create: async (
+    data: PostFormData | FormData,
+    imageFile?: File | null
+  ): Promise<ApiResponse<Post>> => {
+    const payload = data instanceof FormData ? data : toPostCreatePayload(data, imageFile);
     const response = await apiClient.post<ApiResponse<Post>>(ENDPOINTS.posts.create, payload);
     return response.data;
   },
 
-  update: async (id: number | string, data: Partial<PostFormData> | FormData): Promise<ApiResponse<Post>> => {
+  update: async (
+    id: number | string,
+    data: Partial<PostFormData> | FormData,
+    imageFile?: File | null
+  ): Promise<ApiResponse<Post>> => {
     if (data instanceof FormData) {
       const response = await apiClient.post<ApiResponse<Post>>(ENDPOINTS.posts.update(id), data);
       return response.data;
     }
 
-    if (data.image instanceof File) {
-      const fd = buildPostPayload(data, true);
-      const response = await apiClient.post<ApiResponse<Post>>(ENDPOINTS.posts.update(id), fd);
+    const payload = toPostUpdatePayload(data, imageFile);
+
+    if (payload instanceof FormData) {
+      const response = await apiClient.post<ApiResponse<Post>>(ENDPOINTS.posts.update(id), payload);
       return response.data;
     }
 
-    const payload = buildPostPayload(data, true);
     const response = await apiClient.patch<ApiResponse<Post>>(ENDPOINTS.posts.update(id), payload);
     return response.data;
   },

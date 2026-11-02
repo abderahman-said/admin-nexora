@@ -1,10 +1,12 @@
-import React from 'react';
-import { Search } from 'lucide-react';
+import React, { useState } from 'react';
+import { SlidersHorizontal } from 'lucide-react';
 import TableSkeleton from './TableSkeleton';
 import EmptyState from './EmptyState';
-import Pagination from './Pagination';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { DataTableToolbar } from './data-table/DataTableToolbar';
+import { DataTableBulkActions } from './data-table/DataTableBulkActions';
+import { DataTablePaginationBar } from './data-table/DataTablePaginationBar';
 
 export interface Column<T> {
   header: string;
@@ -12,6 +14,7 @@ export interface Column<T> {
   cell?: (item: T, index: number) => React.ReactNode;
   className?: string;
   align?: 'right' | 'center' | 'left';
+  hideable?: boolean;
 }
 
 export interface DataTableProps<T> {
@@ -36,6 +39,10 @@ export interface DataTableProps<T> {
     onPageChange: (page: number) => void;
   };
   keyExtractor: (item: T, index: number) => string | number;
+  selectable?: boolean;
+  selectedIds?: (string | number)[];
+  onSelectionChange?: (selected: (string | number)[]) => void;
+  bulkActions?: React.ReactNode;
 }
 
 export default function DataTable<T>({
@@ -52,42 +59,93 @@ export default function DataTable<T>({
   actions,
   pagination,
   keyExtractor,
+  selectable = false,
+  selectedIds = [],
+  onSelectionChange,
+  bulkActions,
 }: DataTableProps<T>) {
-  return (
-    <div className="space-y-4">
-      {/* Search and Top Actions Bar */}
-      {(search || actions) && (
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          {search && (
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                value={search.value}
-                onChange={(e) => search.onChange(e.target.value)}
-                placeholder={search.placeholder || 'بحث...'}
-                className="w-full h-10 pr-10 pl-4 rounded-xl border border-border bg-card text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all"
-              />
-            </div>
-          )}
+  // Density state: 'comfortable' (default) vs 'compact'
+  const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable');
 
-          {actions && (
-            <div className="flex items-center gap-2 self-end sm:self-auto">
-              {actions}
-            </div>
-          )}
-        </div>
+  // Column visibility state (store index of visible columns)
+  const [hiddenColumnIndices, setHiddenColumnIndices] = useState<number[]>([]);
+
+  const toggleColumnVisibility = (colIdx: number) => {
+    setHiddenColumnIndices((prev) =>
+      prev.includes(colIdx) ? prev.filter((i) => i !== colIdx) : [...prev, colIdx]
+    );
+  };
+
+  const visibleColumns = columns.filter((_, idx) => !hiddenColumnIndices.includes(idx));
+
+  // Selection helpers
+  const allSelected =
+    Boolean(data && data.length > 0) &&
+    data?.every((item, idx) => selectedIds.includes(keyExtractor(item, idx)));
+
+  const handleSelectAll = () => {
+    if (!data || !onSelectionChange) return;
+    if (allSelected) {
+      onSelectionChange([]);
+    } else {
+      const allIds = data.map((item, idx) => keyExtractor(item, idx));
+      onSelectionChange(allIds);
+    }
+  };
+
+  const handleToggleRow = (id: string | number) => {
+    if (!onSelectionChange) return;
+    if (selectedIds.includes(id)) {
+      onSelectionChange(selectedIds.filter((i) => i !== id));
+    } else {
+      onSelectionChange([...selectedIds, id]);
+    }
+  };
+
+  return (
+    <div className="space-y-3.5">
+      {/* Top Search, Controls, and Actions Bar */}
+      <DataTableToolbar
+        search={search}
+        density={density}
+        onToggleDensity={() =>
+          setDensity((d) => (d === 'comfortable' ? 'compact' : 'comfortable'))
+        }
+        columns={columns}
+        hiddenColumnIndices={hiddenColumnIndices}
+        onToggleColumnVisibility={toggleColumnVisibility}
+        actions={actions}
+      />
+
+      {/* Bulk Select Floating Bar */}
+      {selectable && (
+        <DataTableBulkActions
+          selectedCount={selectedIds.length}
+          bulkActions={bulkActions}
+        />
       )}
 
-      {/* Main Content State Handling */}
+      {/* Main Table Content */}
       {isLoading ? (
         <TableSkeleton rows={6} columns={columns.length} />
       ) : isError ? (
-        <div className="flex flex-col items-center justify-center p-12 text-center border rounded-2xl bg-card">
-          <p className="text-destructive font-semibold mb-2">تعذر تحميل البيانات من الخادم</p>
-          <p className="text-sm text-muted-foreground mb-4">يرجى التحقق من الاتصال والمحاولة مرة أخرى</p>
+        <div className="flex flex-col items-center justify-center p-12 text-center border border-border rounded-2xl bg-card shadow-xs">
+          <div className="w-12 h-12 rounded-2xl bg-danger-subtle text-danger flex items-center justify-center mb-3">
+            <SlidersHorizontal className="w-5 h-5" />
+          </div>
+          <p className="text-foreground font-semibold text-sm mb-1">
+            تعذر تحميل البيانات من الخادم
+          </p>
+          <p className="text-xs text-muted-foreground mb-4">
+            يرجى التحقق من اتصالك والمحاولة مرة أخرى
+          </p>
           {onRetry && (
-            <Button onClick={onRetry} variant="outline" className="rounded-xl">
+            <Button
+              onClick={onRetry}
+              variant="outline"
+              size="sm"
+              className="rounded-xl text-xs"
+            >
               إعادة المحاولة
             </Button>
           )}
@@ -100,16 +158,27 @@ export default function DataTable<T>({
           onAction={onEmptyAction}
         />
       ) : (
-        <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-sm">
-              <thead className="bg-muted/50 text-muted-foreground text-xs uppercase border-b border-border">
+        <div className="rounded-2xl border border-border bg-card shadow-xs overflow-hidden">
+          <div className="overflow-x-auto relative">
+            <table className="w-full text-start text-xs sm:text-sm">
+              <thead className="sticky top-0 z-10 bg-muted/60 backdrop-blur-xs text-muted-foreground text-[11px] font-semibold border-b border-border select-none uppercase tracking-wider">
                 <tr>
-                  {columns.map((col, idx) => (
+                  {selectable && (
+                    <th className="w-10 px-4 py-3 text-start">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(allSelected)}
+                        onChange={handleSelectAll}
+                        className="rounded border-border text-primary focus:ring-primary/40 cursor-pointer"
+                        aria-label="تحديد الكل"
+                      />
+                    </th>
+                  )}
+                  {visibleColumns.map((col, idx) => (
                     <th
                       key={idx}
                       className={cn(
-                        'px-5 py-3.5 font-semibold text-right',
+                        'px-4 py-3 font-semibold text-start text-foreground/80',
                         col.align === 'center' && 'text-center',
                         col.align === 'left' && 'text-left',
                         col.className
@@ -121,42 +190,62 @@ export default function DataTable<T>({
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/60">
-                {data.map((item, index) => (
-                  <tr
-                    key={keyExtractor(item, index)}
-                    className="hover:bg-muted/30 transition-colors"
-                  >
-                    {columns.map((col, cIdx) => (
-                      <td
-                        key={cIdx}
-                        className={cn(
-                          'px-5 py-4 align-middle text-foreground',
-                          col.align === 'center' && 'text-center',
-                          col.align === 'left' && 'text-left',
-                          col.className
-                        )}
-                      >
-                        {col.cell
-                          ? col.cell(item, index)
-                          : col.accessor
-                          ? (item[col.accessor] as any)
-                          : null}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
+                {data.map((item, index) => {
+                  const itemId = keyExtractor(item, index);
+                  const isRowSelected = selectedIds.includes(itemId);
+
+                  return (
+                    <tr
+                      key={itemId}
+                      className={cn(
+                        'hover:bg-muted/40 transition-colors group',
+                        isRowSelected && 'bg-primary-subtle/40'
+                      )}
+                    >
+                      {selectable && (
+                        <td className="w-10 px-4 py-3 text-start">
+                          <input
+                            type="checkbox"
+                            checked={isRowSelected}
+                            onChange={() => handleToggleRow(itemId)}
+                            className="rounded border-border text-primary focus:ring-primary/40 cursor-pointer"
+                            aria-label="تحديد العنصر"
+                          />
+                        </td>
+                      )}
+                      {visibleColumns.map((col, cIdx) => (
+                        <td
+                          key={cIdx}
+                          className={cn(
+                            'align-middle text-foreground transition-all',
+                            density === 'comfortable'
+                              ? 'px-4 py-3.5'
+                              : 'px-4 py-2.5',
+                            col.align === 'center' && 'text-center',
+                            col.align === 'left' && 'text-left',
+                            col.className
+                          )}
+                        >
+                          {col.cell
+                            ? col.cell(item, index)
+                            : col.accessor
+                            ? (item[col.accessor] as any)
+                            : null}
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
-          {pagination && pagination.totalPages > 1 && (
-            <div className="p-4 border-t border-border/60 bg-card/60">
-              <Pagination
-                currentPage={pagination.currentPage}
-                totalPages={pagination.totalPages}
-                onPageChange={pagination.onPageChange}
-              />
-            </div>
+          {pagination && (
+            <DataTablePaginationBar
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              onPageChange={pagination.onPageChange}
+            />
           )}
         </div>
       )}

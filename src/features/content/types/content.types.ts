@@ -48,3 +48,31 @@ export interface PageSection {
   video_url?: string | null;
   is_active?: boolean;
 }
+
+export interface TeamMemberFormData {
+  name: TranslatableField;
+  job_title: TranslatableField;
+  badge_text?: TranslatableField;
+  is_active?: boolean;
+  is_highlighted?: boolean;
+  sort_order?: number;
+  image?: File | null;
+}
+
+export interface WorkStepFormData {
+  step_number?: number;
+  title: TranslatableField;
+  description: TranslatableField;
+  is_active?: boolean;
+  icon?: File | null;
+}
+
+export interface TestimonialFormData {
+  client_name: TranslatableField;
+  client_job?: TranslatableField;
+  comment: TranslatableField;
+  rating?: number;
+  sort_order?: number;
+  is_active?: boolean;
+  client_image?: File | null;
+}

@@ -20,13 +20,13 @@ export function LoginForm({ onSubmit, loading }: LoginFormProps) {
   });
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 text-start" noValidate>
       <FormInput
         name="email"
-        label="البريد الالكتروني"
+        label="البريد الإلكتروني"
         type="email"
-        placeholder="ادخل بريدك الالكتروني"
-        className="px-4 h-12 rounded-xl"
+        placeholder="admin@nexora.com"
+        className="h-10.5 rounded-xl text-xs"
         error={errors.email?.message}
         register={register}
         rules={{
@@ -41,8 +41,8 @@ export function LoginForm({ onSubmit, loading }: LoginFormProps) {
       <PasswordInput
         name="password"
         label="كلمة المرور"
-        placeholder="ادخل كلمة المرور"
-        className="px-4 h-12 rounded-xl"
+        placeholder="••••••••"
+        className="h-10.5 rounded-xl text-xs"
         error={errors.password?.message}
         register={register}
         rules={{
@@ -51,14 +51,20 @@ export function LoginForm({ onSubmit, loading }: LoginFormProps) {
         }}
       />
 
-      <LoadingButton
-        type="submit"
-        className="w-full h-12 rounded-xl font-medium"
-        loading={loading}
-        loadingText="جاري تسجيل الدخول..."
-      >
-        تسجيل الدخول
-      </LoadingButton>
+      <div className="pt-2">
+        <LoadingButton
+          type="submit"
+          className="w-full h-10.5 rounded-xl font-semibold text-xs shadow-xs"
+          loading={loading}
+          loadingText="جاري تسجيل الدخول..."
+        >
+          تسجيل الدخول إلى النظام
+        </LoadingButton>
+      </div>
+
+      <p className="text-[11px] text-muted-foreground text-center pt-3">
+        منصة الإدارة الآمنة — Nexora Dashboard
+      </p>
     </form>
   );
 }

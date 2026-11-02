@@ -53,18 +53,18 @@ export default function ImageUploadPreview({
   };
 
   return (
-    <div className={cn('space-y-1.5', className)}>
-      {label && <label className="text-sm font-semibold text-foreground">{label}</label>}
+    <div className={cn('space-y-3', className)}>
+      {label && <label className="text-xs block font-semibold text-foreground">{label}</label>}
 
       <div
         onClick={() => fileInputRef.current?.click()}
         className={cn(
-          'relative border-2 border-dashed rounded-2xl overflow-hidden cursor-pointer transition-all flex flex-col items-center justify-center p-4',
+          'relative border border-dashed rounded-2xl overflow-hidden cursor-pointer transition-all duration-150 flex flex-col items-center justify-center p-3',
           preview
             ? 'border-border bg-card'
-            : 'border-border/80 hover:border-primary/50 hover:bg-muted/30 bg-muted/10',
+            : 'border-border hover:border-primary/50 hover:bg-muted/40 bg-muted/20',
           aspectClasses[aspectRatio],
-          error && 'border-destructive'
+          error && 'border-danger'
         )}
       >
         <input
@@ -85,24 +85,24 @@ export default function ImageUploadPreview({
             <button
               type="button"
               onClick={handleRemove}
-              className="absolute top-2 left-2 p-1.5 rounded-full bg-black/70 text-white hover:bg-destructive transition-colors shadow-sm"
+              className="absolute top-2.5 start-2.5 p-1.5 rounded-xl bg-black/60 text-white hover:bg-danger transition-colors shadow-xs"
               title="إزالة الصورة"
             >
-              <X className="w-4 h-4" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </>
         ) : (
           <div className="flex flex-col items-center justify-center text-center p-4">
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-3">
-              <UploadCloud className="w-6 h-6" />
+            <div className="w-10 h-10 rounded-xl bg-primary-subtle text-primary border border-primary/20 flex items-center justify-center mb-2.5">
+              <UploadCloud className="w-5 h-5" strokeWidth={1.75} />
             </div>
-            <p className="text-sm font-semibold text-foreground">اضغط لرفع صورة</p>
-            <p className="text-xs text-muted-foreground mt-1">PNG, JPG, WEBP حتى 5MB</p>
+            <p className="text-xs font-semibold text-foreground">اضغط لاختيار صورة</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">PNG, JPG, WEBP حتى 5MB</p>
           </div>
         )}
       </div>
 
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && <p className="text-xs text-danger font-medium">{error}</p>}
     </div>
   );
 }

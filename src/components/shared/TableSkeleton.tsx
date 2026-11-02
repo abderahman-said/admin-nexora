@@ -5,24 +5,30 @@ interface TableSkeletonProps {
 
 export default function TableSkeleton({ rows = 5, columns = 4 }: TableSkeletonProps) {
   return (
-    <div className="w-full bg-card rounded-2xl border border-border/60 overflow-hidden animate-pulse">
-      <div className="h-12 bg-muted/40 border-b border-border/50 flex items-center px-6 gap-4">
+    <div className="w-full bg-card rounded-2xl border border-border overflow-hidden shadow-xs animate-pulse">
+      {/* Table Header Skeleton */}
+      <div className="h-11 bg-muted/40 border-b border-border flex items-center px-5 gap-4">
         {Array.from({ length: columns }).map((_, i) => (
           <div
             key={i}
-            className="h-4 bg-muted/80 rounded"
-            style={{ width: `${100 / columns}%` }}
+            className="h-3.5 bg-muted rounded-md"
+            style={{ width: `${Math.max(15, 90 / columns)}%` }}
           />
         ))}
       </div>
-      <div className="divide-y divide-border/40">
+
+      {/* Table Rows Skeleton */}
+      <div className="divide-y divide-border/60">
         {Array.from({ length: rows }).map((_, r) => (
-          <div key={r} className="h-16 flex items-center px-6 gap-4">
+          <div key={r} className="h-15 flex items-center px-5 gap-4 bg-card">
             {Array.from({ length: columns }).map((_, c) => (
               <div
                 key={c}
-                className="h-4 bg-muted/60 rounded"
-                style={{ width: `${Math.max(30, (100 / columns) - (c * 10))}%` }}
+                className="h-3.5 bg-muted/70 rounded-md"
+                style={{
+                  width: `${Math.max(20, (80 / columns) - (c === 0 ? 0 : 5))}%`,
+                  opacity: 1 - (r * 0.08),
+                }}
               />
             ))}
           </div>

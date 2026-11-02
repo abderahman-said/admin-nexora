@@ -44,7 +44,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="space-y-6 p-4 md:p-6" dir="rtl">
+    <div className="max-w-7xl mx-auto space-y-6 p-4 md:p-6 lg:p-8" dir="rtl">
       <PageHeader
         title="الملف الشخصي"
         description="إدارة معلومات الحساب وتغيير كلمة المرور الخاصة بك"

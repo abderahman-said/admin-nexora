@@ -27,20 +27,21 @@ export function PasswordInput({
 
   return (
     <FormField name={name} error={error} touched={touched}>
-      <FormLabel>{label}</FormLabel>
+      {label && <FormLabel>{label}</FormLabel>}
       <div className="relative">
         <FormControl
           type={showPassword ? 'text' : 'password'}
-          className={`${className} pe-12`}
+          className={`${className} pe-11`}
           {...(register ? register(name, rules) : {})}
           {...props}
         />
         <button
           type="button"
           onClick={() => setShowPassword((prev) => !prev)}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          className="absolute end-3 top-1/2 -translate-y-1/2 p-1 text-muted-foreground/75 hover:text-foreground transition-colors rounded-lg hover:bg-muted"
+          aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
         >
-          {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
         </button>
       </div>
       <FormMessage />

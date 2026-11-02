@@ -20,7 +20,8 @@ export function useWorkSteps() {
 export function useCreateWorkStep() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: contentApi.createWorkStep,
+    mutationFn: (data: Parameters<typeof contentApi.createWorkStep>[0]) =>
+      contentApi.createWorkStep(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: contentKeys.workSteps });
       toast.success('تمت إضافة خطوة العمل بنجاح');
@@ -69,7 +70,8 @@ export function useTeamMembers() {
 export function useCreateTeamMember() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: contentApi.createTeamMember,
+    mutationFn: (data: Parameters<typeof contentApi.createTeamMember>[0]) =>
+      contentApi.createTeamMember(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: contentKeys.teamMembers });
       toast.success('تمت إضافة عضو الفريق بنجاح');
@@ -118,7 +120,8 @@ export function useTestimonials() {
 export function useCreateTestimonial() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: contentApi.createTestimonial,
+    mutationFn: (data: Parameters<typeof contentApi.createTestimonial>[0]) =>
+      contentApi.createTestimonial(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: contentKeys.testimonials });
       toast.success('تمت إضافة رأي العميل بنجاح');

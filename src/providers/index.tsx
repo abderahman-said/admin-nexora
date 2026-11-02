@@ -48,8 +48,17 @@ export function Providers({ children }: ProvidersProps) {
                 <Toaster
                     position="top-left"
                     toastOptions={{
-                        duration: 4000,
-                        style: { fontFamily: "inherit" },
+                        duration: 3500,
+                        style: {
+                            fontFamily: "inherit",
+                            borderRadius: "12px",
+                            background: "var(--card)",
+                            color: "var(--card-foreground)",
+                            border: "1px solid var(--border)",
+                            boxShadow: "var(--shadow-lg)",
+                            fontSize: "13px",
+                            padding: "10px 16px",
+                        },
                     }}
                 />
             </ThemeProvider>

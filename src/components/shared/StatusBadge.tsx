@@ -12,20 +12,20 @@ export default function StatusBadge({ status, type = 'boolean', className }: Sta
     return (
       <span
         className={cn(
-          'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold tracking-wide border transition-colors',
+          'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border transition-colors',
           isActive
-            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-            : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+            ? 'bg-success-subtle text-success-foreground border-success/20'
+            : 'bg-muted text-muted-foreground border-border',
           className
         )}
       >
         <span
           className={cn(
-            'w-1.5 h-1.5 rounded-full',
-            isActive ? 'bg-emerald-500' : 'bg-rose-500'
+            'w-1.5 h-1.5 rounded-full shrink-0',
+            isActive ? 'bg-success' : 'bg-muted-foreground'
           )}
         />
-        {isActive ? 'نشط' : 'غير نشط'}
+        <span>{isActive ? 'نشط' : 'غير نشط'}</span>
       </span>
     );
   }
@@ -34,15 +34,15 @@ export default function StatusBadge({ status, type = 'boolean', className }: Sta
     const roleMap: Record<string, { label: string; style: string }> = {
       super_admin: {
         label: 'مدير عام',
-        style: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20',
+        style: 'bg-primary-subtle text-primary border-primary/20',
       },
       admin: {
         label: 'مشرف',
-        style: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+        style: 'bg-info-subtle text-info-foreground border-info/20',
       },
       observer: {
         label: 'مراقب (قراءة فقط)',
-        style: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20',
+        style: 'bg-muted text-muted-foreground border-border',
       },
     };
 
@@ -65,39 +65,45 @@ export default function StatusBadge({ status, type = 'boolean', className }: Sta
   }
 
   if (type === 'message') {
-    const statusMap: Record<string, { label: string; style: string }> = {
+    const statusMap: Record<string, { label: string; style: string; dot: string }> = {
       new: {
         label: 'جديدة',
-        style: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+        style: 'bg-warning-subtle text-warning-foreground border-warning/20',
+        dot: 'bg-warning',
       },
       read: {
         label: 'مقروءة',
-        style: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+        style: 'bg-info-subtle text-info-foreground border-info/20',
+        dot: 'bg-info',
       },
       in_progress: {
         label: 'قيد المتابعة',
-        style: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+        style: 'bg-primary-subtle text-primary border-primary/20',
+        dot: 'bg-primary',
       },
       closed: {
         label: 'مغلقة',
-        style: 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20',
+        style: 'bg-muted text-muted-foreground border-border',
+        dot: 'bg-muted-foreground',
       },
     };
 
     const item = statusMap[String(status)] || {
       label: String(status),
       style: 'bg-muted text-muted-foreground border-border',
+      dot: 'bg-muted-foreground',
     };
 
     return (
       <span
         className={cn(
-          'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border',
+          'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border',
           item.style,
           className
         )}
       >
-        {item.label}
+        <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', item.dot)} />
+        <span>{item.label}</span>
       </span>
     );
   }

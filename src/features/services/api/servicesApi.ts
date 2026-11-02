@@ -51,6 +51,26 @@ export function buildServicePayload(data: Partial<ServiceFormData>, isEdit = fal
   return fd;
 }
 
+import { validateDevPayload } from '@/lib/payloadUtils';
+
+export function toServiceCreatePayload(
+  data: ServiceFormData,
+  iconFile?: File | null
+): FormData | Record<string, unknown> {
+  const merged = { ...data, icon: iconFile ?? data.icon };
+  const payload = buildServicePayload(merged, false);
+  validateDevPayload('Service Create', payload, ['slug', 'title', 'short_description']);
+  return payload;
+}
+
+export function toServiceUpdatePayload(
+  data: Partial<ServiceFormData>,
+  iconFile?: File | null
+): FormData | Record<string, unknown> {
+  const merged = { ...data, icon: iconFile ?? data.icon };
+  return buildServicePayload(merged, true);
+}
+
 export const servicesApi = {
   list: async (params?: PaginationParams): Promise<ApiResponse<Service[]>> => {
     const res = await apiClient.get<ApiResponse<Service[]>>(ENDPOINTS.services.list, {
@@ -64,27 +84,35 @@ export const servicesApi = {
     return res.data;
   },
 
-  create: async (data: ServiceFormData | FormData): Promise<ApiResponse<Service>> => {
-    const payload = data instanceof FormData ? data : buildServicePayload(data, false);
+  create: async (
+    data: ServiceFormData | FormData,
+    iconFile?: File | null
+  ): Promise<ApiResponse<Service>> => {
+    const payload = data instanceof FormData ? data : toServiceCreatePayload(data, iconFile);
     const res = await apiClient.post<ApiResponse<Service>>(ENDPOINTS.services.create, payload);
     return res.data;
   },
 
-  update: async (id: number | string, data: Partial<ServiceFormData> | FormData): Promise<ApiResponse<Service>> => {
+  update: async (
+    id: number | string,
+    data: Partial<ServiceFormData> | FormData,
+    iconFile?: File | null
+  ): Promise<ApiResponse<Service>> => {
     if (data instanceof FormData) {
       const res = await apiClient.post<ApiResponse<Service>>(ENDPOINTS.services.update(id), data);
       return res.data;
     }
 
-    if (data.icon instanceof File) {
-      const fd = buildServicePayload(data, true);
-      const res = await apiClient.post<ApiResponse<Service>>(ENDPOINTS.services.update(id), fd);
+    const payload = toServiceUpdatePayload(data, iconFile);
+
+    if (payload instanceof FormData) {
+      const res = await apiClient.post<ApiResponse<Service>>(ENDPOINTS.services.update(id), payload);
       return res.data;
     }
 
     const res = await apiClient.patch<ApiResponse<Service>>(
       ENDPOINTS.services.update(id),
-      buildServicePayload(data, true)
+      payload
     );
     return res.data;
   },

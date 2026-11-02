@@ -114,6 +114,33 @@ export function hasFormChanges<T extends FieldValues>(
  * Creates a FormData payload for multipart PATCH updates, containing ONLY
  * the changed fields and any newly selected files.
  */
+function appendToFormData(fd: FormData, prefix: string, val: unknown): void {
+  if (val === undefined) return;
+  if (val === null) {
+    fd.append(prefix, '');
+  } else if (typeof val === 'boolean') {
+    fd.append(prefix, val ? '1' : '0');
+  } else if (typeof val === 'number') {
+    fd.append(prefix, String(val));
+  } else if (typeof val === 'string') {
+    fd.append(prefix, val);
+  } else if (val instanceof File || val instanceof Blob) {
+    fd.append(prefix, val);
+  } else if (Array.isArray(val)) {
+    val.forEach((item, index) => {
+      appendToFormData(fd, `${prefix}[${index}]`, item);
+    });
+  } else if (typeof val === 'object') {
+    for (const [subKey, subVal] of Object.entries(val as Record<string, unknown>)) {
+      appendToFormData(fd, `${prefix}[${subKey}]`, subVal);
+    }
+  }
+}
+
+/**
+ * Creates a FormData payload for multipart PATCH updates, containing ONLY
+ * the changed fields and any newly selected files.
+ */
 export function createPatchFormData<T extends Record<string, unknown>>(
   dirtyValues: Partial<T>,
   files?: Record<string, File | null | undefined>
@@ -125,24 +152,7 @@ export function createPatchFormData<T extends Record<string, unknown>>(
     if (value === undefined) continue;
     if (UNEDITABLE_FIELDS.has(key)) continue;
 
-    if (value === null) {
-      formData.append(key, '');
-    } else if (typeof value === 'boolean') {
-      formData.append(key, value ? '1' : '0');
-    } else if (typeof value === 'number') {
-      formData.append(key, String(value));
-    } else if (typeof value === 'string') {
-      formData.append(key, value);
-    } else if (typeof value === 'object' && !(value instanceof File) && !(value instanceof Blob)) {
-      // Translatable or nested object, e.g. title: { ar: '...', en: '...' }
-      for (const [subKey, subVal] of Object.entries(value as Record<string, unknown>)) {
-        if (subVal !== undefined && subVal !== null) {
-          formData.append(`${key}[${subKey}]`, String(subVal));
-        }
-      }
-    } else if (value instanceof File || value instanceof Blob) {
-      formData.append(key, value);
-    }
+    appendToFormData(formData, key, value);
   }
 
   // Append new files only

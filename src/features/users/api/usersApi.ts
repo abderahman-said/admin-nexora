@@ -3,6 +3,16 @@ import { ENDPOINTS } from '@/api/endpoints';
 import { ApiResponse, PaginationParams } from '@/api/types';
 import { AdminUser, CreateUserPayload, UpdateUserPayload } from '../types/user.types';
 import { UserRole } from '@/features/auth/types/auth.types';
+import { validateDevPayload } from '@/lib/payloadUtils';
+
+export const toUserCreatePayload = (data: CreateUserPayload) => {
+  validateDevPayload('POST /admin/users', data, ['name', 'email', 'password']);
+  return {
+    name: data.name,
+    email: data.email,
+    password: data.password,
+  };
+};
 
 export const usersApi = {
   list: async (params?: PaginationParams): Promise<ApiResponse<AdminUser[]>> => {
@@ -18,7 +28,8 @@ export const usersApi = {
   },
 
   create: async (data: CreateUserPayload): Promise<ApiResponse<AdminUser>> => {
-    const response = await apiClient.post<ApiResponse<AdminUser>>(ENDPOINTS.users.create, data);
+    const payload = toUserCreatePayload(data);
+    const response = await apiClient.post<ApiResponse<AdminUser>>(ENDPOINTS.users.create, payload);
     return response.data;
   },
 

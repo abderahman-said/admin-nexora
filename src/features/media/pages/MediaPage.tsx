@@ -32,7 +32,7 @@ export default function MediaPage() {
   };
 
   return (
-    <div className="space-y-6 p-4 md:p-6" dir="rtl">
+    <div className="max-w-7xl mx-auto space-y-6 p-4 md:p-6 lg:p-8" dir="rtl">
       <PageHeader
         title="مكتبة الوسائط"
         description="استعراض وإدارة الصور والملفات المرفوعة عبر النظام"
