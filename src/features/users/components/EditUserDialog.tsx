@@ -18,7 +18,7 @@ interface EditUserDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   user: AdminUser | null;
-  onSubmit: (dirtyData: UpdateUserPayload) => void;
+  onSubmit: (dirtyData: Partial<UpdateUserPayload>) => void;
   isLoading: boolean;
 }
 

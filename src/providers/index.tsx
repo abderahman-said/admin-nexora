@@ -34,8 +34,8 @@ export function Providers({ children }: ProvidersProps) {
                     queries: {
                         retry: 1,
                         refetchOnWindowFocus: false,
-                        staleTime: Infinity, // Cache data indefinitely
-                        gcTime: 1000 * 60 * 60 * 24, // Keep cache for 24 hours
+                        staleTime: 1000 * 60, // Data fresh for 1 minute
+                        gcTime: 1000 * 60 * 10, // Garbage collect unused cache after 10 minutes
                     },
                 },
             })

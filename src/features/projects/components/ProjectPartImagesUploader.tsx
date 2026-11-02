@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import { UploadCloud, CheckCircle2, Trash2 } from 'lucide-react';
 import { cn, getMediaUrl } from '@/lib/utils';
 import { ProjectPartImage } from '../types/project.types';
+import toast from 'react-hot-toast';
 
 interface ProjectPartImagesUploaderProps {
   partType: 'website' | 'mobile_app';
@@ -9,6 +11,46 @@ interface ProjectPartImagesUploaderProps {
   onUploadFiles: (files: FileList | null) => void;
   onRemoveExisting: (imgIndex: number) => void;
   onRemoveNew: (fileIndex: number) => void;
+}
+
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_FILE_SIZE_MB = 5;
+
+function NewImageThumbnail({
+  file,
+  onRemove,
+}: {
+  file: File;
+  onRemove: () => void;
+}) {
+  const [url, setUrl] = useState<string>('');
+
+  useEffect(() => {
+    const objectUrl = URL.createObjectURL(file);
+    setUrl(objectUrl);
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [file]);
+
+  if (!url) return null;
+
+  return (
+    <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-primary/50 group">
+      <img src={url} alt="" className="w-full h-full object-cover" />
+      <div className="absolute top-1 right-1 bg-primary text-white rounded-full p-0.5">
+        <CheckCircle2 className="w-3 h-3" />
+      </div>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="absolute inset-0 bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+        title="إلغاء الصورة الجديدة"
+      >
+        <Trash2 className="w-4 h-4 text-destructive" />
+      </button>
+    </div>
+  );
 }
 
 export function ProjectPartImagesUploader({
@@ -22,6 +64,29 @@ export function ProjectPartImagesUploader({
   const isWebsite = partType === 'website';
   const maxImages = isWebsite ? 1 : 3;
   const totalCount = images.length + newImageFiles.length;
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // Validate each file
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        toast.error(`الملف "${file.name}" غير مدعوم. يرجى اختيار صور JPG أو PNG أو WEBP فقط.`);
+        e.target.value = '';
+        return;
+      }
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        toast.error(`حجم الصورة "${file.name}" يتجاوز الحد الأقصى (${MAX_FILE_SIZE_MB}MB).`);
+        e.target.value = '';
+        return;
+      }
+    }
+
+    onUploadFiles(files);
+    e.target.value = '';
+  };
 
   return (
     <div className="space-y-2 pt-2 border-t">
@@ -73,7 +138,7 @@ export function ProjectPartImagesUploader({
               <button
                 type="button"
                 onClick={() => onRemoveExisting(iIdx)}
-                className="absolute inset-0 bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute inset-0 bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                 title="حذف الصورة"
               >
                 <Trash2 className="w-4 h-4 text-destructive" />
@@ -84,27 +149,11 @@ export function ProjectPartImagesUploader({
 
         {/* Newly selected files */}
         {newImageFiles.map((file, fIdx) => (
-          <div
-            key={`new-${fIdx}`}
-            className="relative w-20 h-20 rounded-xl overflow-hidden border border-primary/50 group"
-          >
-            <img
-              src={URL.createObjectURL(file)}
-              alt=""
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute top-1 right-1 bg-primary text-white rounded-full p-0.5">
-              <CheckCircle2 className="w-3 h-3" />
-            </div>
-            <button
-              type="button"
-              onClick={() => onRemoveNew(fIdx)}
-              className="absolute inset-0 bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-              title="إلغاء الصورة الجديدة"
-            >
-              <Trash2 className="w-4 h-4 text-destructive" />
-            </button>
-          </div>
+          <NewImageThumbnail
+            key={`new-${fIdx}-${file.name}-${file.size}`}
+            file={file}
+            onRemove={() => onRemoveNew(fIdx)}
+          />
         ))}
 
         {/* File input button */}
@@ -122,10 +171,10 @@ export function ProjectPartImagesUploader({
           </span>
           <input
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/png,image/webp"
             multiple={!isWebsite}
             className="hidden"
-            onChange={(e) => onUploadFiles(e.target.files)}
+            onChange={handleFileChange}
           />
         </label>
       </div>

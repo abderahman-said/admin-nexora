@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { X, UploadCloud } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import toast from 'react-hot-toast';
 
 interface ImageUploadPreviewProps {
   label?: string;
@@ -9,7 +10,10 @@ interface ImageUploadPreviewProps {
   error?: string;
   className?: string;
   aspectRatio?: 'square' | 'video' | 'banner';
+  maxSizeMB?: number;
 }
+
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export default function ImageUploadPreview({
   label = 'الصورة',
@@ -18,27 +22,63 @@ export default function ImageUploadPreview({
   error,
   className,
   aspectRatio = 'video',
+  maxSizeMB = 5,
 }: ImageUploadPreviewProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const blobUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (currentImageUrl && !preview) {
+    if (currentImageUrl && !blobUrlRef.current) {
       setPreview(currentImageUrl);
     }
-  }, [currentImageUrl, preview]);
+  }, [currentImageUrl]);
+
+  // Clean up blob URL on unmount
+  useEffect(() => {
+    return () => {
+      if (blobUrlRef.current) {
+        URL.revokeObjectURL(blobUrlRef.current);
+      }
+    };
+  }, []);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setPreview(url);
-      onChange(file);
+    if (!file) return;
+
+    // Validate MIME type
+    if (!ALLOWED_TYPES.includes(file.type)) {
+      toast.error('نوع الملف غير مدعوم. يرجى اختيار صورة بصيغة JPG أو PNG أو WEBP.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
     }
+
+    // Validate File Size
+    const maxSizeBytes = maxSizeMB * 1024 * 1024;
+    if (file.size > maxSizeBytes) {
+      toast.error(`حجم الصورة كبير جداً. الحد الأقصى المسموح به هو ${maxSizeMB} ميجابايت.`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // Revoke previous blob URL to prevent memory leaks
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+    }
+
+    const url = URL.createObjectURL(file);
+    blobUrlRef.current = url;
+    setPreview(url);
+    onChange(file);
   };
 
   const handleRemove = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = null;
+    }
     setPreview(null);
     onChange(null);
     if (fileInputRef.current) {
@@ -70,7 +110,7 @@ export default function ImageUploadPreview({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*"
+          accept="image/jpeg,image/png,image/webp"
           className="hidden"
           onChange={handleFileSelect}
         />
@@ -97,7 +137,7 @@ export default function ImageUploadPreview({
               <UploadCloud className="w-5 h-5" strokeWidth={1.75} />
             </div>
             <p className="text-xs font-semibold text-foreground">اضغط لاختيار صورة</p>
-            <p className="text-[11px] text-muted-foreground mt-0.5">PNG, JPG, WEBP حتى 5MB</p>
+            <p className="text-[11px] text-muted-foreground mt-0.5">PNG, JPG, WEBP حتى {maxSizeMB}MB</p>
           </div>
         )}
       </div>

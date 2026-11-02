@@ -8,7 +8,7 @@ import { UserRole } from '@/features/auth/types/auth.types';
 
 interface GetUsersColumnsProps {
   changingRole: boolean;
-  onChangeRole: (id: string, role: UserRole) => void;
+  onChangeRole: (id: string | number, role: UserRole) => void;
   onEdit: (user: AdminUser) => void;
   onResetPassword: (user: AdminUser) => void;
   onDelete: (user: AdminUser) => void;

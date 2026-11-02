@@ -5,6 +5,8 @@ import Cookies from "js-cookie";
 import DashboardLayout from "../layouts/DashboardLayout";
 import useAuthStore from "../store/useAuthStore";
 import { AUTH_COOKIE_NAME } from "@/api/client";
+import ErrorBoundary from "@/components/shared/ErrorBoundary";
+import RoleRoute from "./RoleRoute";
 
 // Lazy Pages
 const Login = lazy(() => import("../pages/Login"));
@@ -74,57 +76,73 @@ function PageLoader() {
 export default function AppRoutes() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<PageLoader />}>
-        <Routes>
-          <Route path="/login" element={<Login />} />
+      <ErrorBoundary>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
 
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="dashboard/profile" element={<ProfilePage />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="dashboard/profile" element={<ProfilePage />} />
 
-            {/* Services */}
-            <Route path="dashboard/services" element={<ServicesListPage />} />
-            <Route path="dashboard/services/new" element={<ServiceFormPage />} />
-            <Route path="dashboard/services/:id/edit" element={<ServiceFormPage />} />
+              {/* Services */}
+              <Route path="dashboard/services" element={<ServicesListPage />} />
+              <Route path="dashboard/services/new" element={<ServiceFormPage />} />
+              <Route path="dashboard/services/:id/edit" element={<ServiceFormPage />} />
 
-            {/* Projects */}
-            <Route path="dashboard/projects" element={<ProjectsListPage />} />
-            <Route path="dashboard/projects/new" element={<ProjectFormPage />} />
-            <Route path="dashboard/projects/:id/edit" element={<ProjectFormPage />} />
+              {/* Projects */}
+              <Route path="dashboard/projects" element={<ProjectsListPage />} />
+              <Route path="dashboard/projects/new" element={<ProjectFormPage />} />
+              <Route path="dashboard/projects/:id/edit" element={<ProjectFormPage />} />
 
-            {/* Blog / Posts */}
-            <Route path="dashboard/blog" element={<PostsListPage />} />
-            <Route path="dashboard/blog/new" element={<PostFormPage />} />
-            <Route path="dashboard/blog/:id/edit" element={<PostFormPage />} />
+              {/* Blog / Posts */}
+              <Route path="dashboard/blog" element={<PostsListPage />} />
+              <Route path="dashboard/blog/new" element={<PostFormPage />} />
+              <Route path="dashboard/blog/:id/edit" element={<PostFormPage />} />
 
-            {/* Messages */}
-            <Route path="dashboard/messages" element={<MessagesListPage />} />
+              {/* Messages */}
+              <Route path="dashboard/messages" element={<MessagesListPage />} />
 
-            {/* Content Management */}
-            <Route path="dashboard/work-steps" element={<WorkStepsPage />} />
-            <Route path="dashboard/team" element={<TeamMembersPage />} />
-            <Route path="dashboard/testimonials" element={<TestimonialsPage />} />
-            <Route path="dashboard/page-sections" element={<PageSectionsPage />} />
+              {/* Content Management */}
+              <Route path="dashboard/work-steps" element={<WorkStepsPage />} />
+              <Route path="dashboard/team" element={<TeamMembersPage />} />
+              <Route path="dashboard/testimonials" element={<TestimonialsPage />} />
+              <Route path="dashboard/page-sections" element={<PageSectionsPage />} />
 
-            {/* Users */}
-            <Route path="dashboard/users" element={<UsersListPage />} />
+              {/* Users (Restricted to super_admin) */}
+              <Route
+                path="dashboard/users"
+                element={
+                  <RoleRoute allowedRoles={['super_admin']}>
+                    <UsersListPage />
+                  </RoleRoute>
+                }
+              />
 
-            {/* Media & Settings */}
-            <Route path="dashboard/media" element={<MediaPage />} />
-            <Route path="dashboard/settings" element={<SettingsPage />} />
-          </Route>
+              {/* Media & Settings (Settings restricted to super_admin and admin) */}
+              <Route path="dashboard/media" element={<MediaPage />} />
+              <Route
+                path="dashboard/settings"
+                element={
+                  <RoleRoute allowedRoles={['super_admin', 'admin']}>
+                    <SettingsPage />
+                  </RoleRoute>
+                }
+              />
+            </Route>
 
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Suspense>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

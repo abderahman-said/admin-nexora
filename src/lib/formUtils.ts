@@ -43,11 +43,12 @@ export function getFirstError(errors: FieldErrors | Record<string, unknown>, par
  * 2. Emits a 'translatable-field-error' event so TranslatableInput can auto-switch language tabs.
  * 3. Smoothly scrolls to the first invalid field and focuses it.
  */
-export function handleFormErrors(errors: FieldErrors, fallbackMessage?: string) {
+export function handleFormErrors(errors: FieldErrors, fallbackMessage?: string | unknown) {
   const firstError = getFirstError(errors);
+  const fallbackStr = typeof fallbackMessage === 'string' ? fallbackMessage : undefined;
   const message =
     firstError?.message ||
-    fallbackMessage ||
+    fallbackStr ||
     'يرجى إكمال جميع الحقول المطلوبة باللغتين العربية والإنجليزية قبل الحفظ.';
 
   toast.error(message);

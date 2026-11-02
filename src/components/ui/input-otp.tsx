@@ -4,10 +4,9 @@ import { OTPInput, OTPInputContext } from "input-otp"
 import { cn } from "@/lib/utils"
 import { MinusIcon } from "lucide-react"
 
-interface InputOTPProps extends React.ComponentProps<typeof OTPInput> {
-  className?: string;
+type InputOTPProps = React.ComponentProps<typeof OTPInput> & {
   containerClassName?: string;
-}
+};
 
 function InputOTP({
   className,

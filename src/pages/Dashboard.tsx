@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useServices } from '@/features/services/hooks/useServices';
@@ -8,10 +9,15 @@ import { useUsers } from '@/features/users/hooks/useUsers';
 import PageHeader from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
 import { DashboardStatGrid } from './dashboard/DashboardStatGrid';
-import { DashboardAnalyticsChart } from './dashboard/DashboardAnalyticsChart';
 import { DashboardQuickActions } from './dashboard/DashboardQuickActions';
 import { DashboardRecentMessages } from './dashboard/DashboardRecentMessages';
 import { DashboardRecentPosts } from './dashboard/DashboardRecentPosts';
+
+const DashboardAnalyticsChart = lazy(() =>
+  import('./dashboard/DashboardAnalyticsChart').then((m) => ({
+    default: m.DashboardAnalyticsChart,
+  }))
+);
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -52,7 +58,7 @@ export default function Dashboard() {
             <Button
               onClick={() => navigate('/dashboard/projects/new')}
               size="sm"
-              className="rounded-xl flex items-center gap-1.5 shadow-xs"
+              className="rounded-xl flex items-center gap-1.5 shadow-2xs"
             >
               <Plus className="w-4 h-4" />
               <span>مشروع جديد</span>
@@ -81,11 +87,19 @@ export default function Dashboard() {
 
       {/* Main Analytics Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <DashboardAnalyticsChart data={chartData} />
+        <Suspense
+          fallback={
+            <div className="lg:col-span-2 h-[340px] rounded-2xl border bg-card/60 animate-pulse flex items-center justify-center text-xs text-muted-foreground">
+              جاري تحميل المخطط البياني...
+            </div>
+          }
+        >
+          <DashboardAnalyticsChart data={chartData} />
+        </Suspense>
         <DashboardQuickActions />
       </div>
 
-      {/* Recent Activity Sections (Messages & Posts) */}
+      {/* Recent Activity: Messages & Posts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <DashboardRecentMessages messages={recentMessages} />
         <DashboardRecentPosts posts={recentPosts} />

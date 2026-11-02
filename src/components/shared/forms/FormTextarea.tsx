@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Textarea, TextareaProps } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
-export interface FormTextareaProps extends Omit<TextareaProps, 'name'> {
+export interface FormTextareaProps extends Omit<TextareaProps, 'name' | 'error'> {
   label?: string;
   labelExtra?: React.ReactNode;
   name?: string;

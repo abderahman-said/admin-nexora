@@ -50,7 +50,7 @@ export default function UsersListPage() {
     });
   };
 
-  const onEditUser = (dirty: UpdateUserPayload) => {
+  const onEditUser = (dirty: Partial<UpdateUserPayload>) => {
     if (!selectedUser) return;
     updateUser(dirty, {
       onSuccess: () => {
@@ -87,7 +87,7 @@ export default function UsersListPage() {
     () =>
       getUsersColumns({
         changingRole,
-        onChangeRole: (id: string, role: UserRole) => changeRole({ id, role }),
+        onChangeRole: (id: string | number, role: UserRole) => changeRole({ id, role }),
         onEdit: (user) => {
           setSelectedUser(user);
           setEditDialogOpen(true);

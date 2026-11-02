@@ -96,7 +96,7 @@ export default function MediaPage() {
                       <a
                         href={url}
                         target="_blank"
-                        rel="noreferrer"
+                        rel="noopener noreferrer"
                         className="p-1.5 rounded-lg bg-black/60 text-white hover:bg-black/90 transition-colors"
                         title="فتح الصورة"
                       >

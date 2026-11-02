@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import AppSidebar from "@/layouts/AppSidebar";
 import TopNavbar from "@/layouts/TopNavbar";
+import OfflineBanner from "@/components/shared/OfflineBanner";
 
 export default function DashboardLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -19,6 +20,7 @@ export default function DashboardLayout() {
       />
 
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+        <OfflineBanner />
         <TopNavbar
           onMenuClick={toggleMobile}
           onToggleCollapse={toggleCollapse}

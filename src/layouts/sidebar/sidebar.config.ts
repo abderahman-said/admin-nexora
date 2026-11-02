@@ -13,12 +13,14 @@ import {
   LayoutTemplate,
   LucideIcon,
 } from 'lucide-react';
+import { UserRole } from '@/features/auth/types/auth.types';
 
 export interface NavigationItem {
   name: string;
   href: string;
   icon: LucideIcon;
   badge?: number;
+  roles?: UserRole[];
 }
 
 export const mainNav: NavigationItem[] = [
@@ -37,7 +39,7 @@ export const contentNav: NavigationItem[] = [
 ];
 
 export const adminNav: NavigationItem[] = [
-  { name: 'المستخدمين', href: '/dashboard/users', icon: Users },
+  { name: 'المستخدمين', href: '/dashboard/users', icon: Users, roles: ['super_admin'] },
   { name: 'مكتبة الوسائط', href: '/dashboard/media', icon: Image },
-  { name: 'الإعدادات', href: '/dashboard/settings', icon: Settings },
+  { name: 'الإعدادات', href: '/dashboard/settings', icon: Settings, roles: ['super_admin', 'admin'] },
 ];

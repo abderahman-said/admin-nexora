@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Input, InputProps } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 
-export interface FormInputProps extends Omit<InputProps, 'name'> {
+export interface FormInputProps extends Omit<InputProps, 'name' | 'error'> {
   label?: string;
   labelExtra?: React.ReactNode;
   name?: string;

@@ -1,6 +1,8 @@
 import { cn } from '@/lib/utils';
 import { useMessages } from '@/features/messages/hooks/useMessages';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import useAuthStore from '@/store/useAuthStore';
+import { UserRole } from '@/features/auth/types/auth.types';
 import {
   mainNav,
   contentNav,
@@ -24,37 +26,48 @@ export default function AppSidebar({
 }: AppSidebarProps) {
   const closeOnMobile = () => isOpen && onToggle();
 
+  const user = useAuthStore((s) => s.user);
+  const userRole = (user?.role as UserRole) || 'observer';
+
   // Query unread messages for real-time notification badge
   const { data: messagesRes } = useMessages();
   const unreadMessagesCount =
     messagesRes?.data?.filter((m) => m.status === 'new').length ?? 0;
 
-  const renderNavGroup = (title: string, items: NavigationItem[]) => (
-    <div className="mb-4">
-      {!collapsed && (
-        <div className="flex items-center justify-between px-3 mb-1.5">
-          <span className="text-[10px] font-bold tracking-wider text-muted-foreground/75 uppercase select-none">
-            {title}
-          </span>
-        </div>
-      )}
-      <nav className="flex flex-col gap-0.5">
-        {items.map((item) => (
-          <SidebarNavItem
-            key={item.name}
-            item={item}
-            collapsed={collapsed}
-            badgeCount={
-              item.href === '/dashboard/messages' && unreadMessagesCount > 0
-                ? unreadMessagesCount
-                : undefined
-            }
-            onNavigate={closeOnMobile}
-          />
-        ))}
-      </nav>
-    </div>
-  );
+  const renderNavGroup = (title: string, items: NavigationItem[]) => {
+    const visibleItems = items.filter(
+      (item) => !item.roles || item.roles.includes(userRole)
+    );
+
+    if (visibleItems.length === 0) return null;
+
+    return (
+      <div className="mb-4">
+        {!collapsed && (
+          <div className="flex items-center justify-between px-3 mb-1.5">
+            <span className="text-[10px] font-bold tracking-wider text-muted-foreground/75 uppercase select-none">
+              {title}
+            </span>
+          </div>
+        )}
+        <nav className="flex flex-col gap-0.5">
+          {visibleItems.map((item) => (
+            <SidebarNavItem
+              key={item.name}
+              item={item}
+              collapsed={collapsed}
+              badgeCount={
+                item.href === '/dashboard/messages' && unreadMessagesCount > 0
+                  ? unreadMessagesCount
+                  : undefined
+              }
+              onNavigate={closeOnMobile}
+            />
+          ))}
+        </nav>
+      </div>
+    );
+  };
 
   return (
     <TooltipProvider delayDuration={100}>
