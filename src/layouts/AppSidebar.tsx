@@ -82,7 +82,7 @@ export default function AppSidebar({
       <aside
         dir="rtl"
         className={cn(
-          'fixed inset-y-0 start-0 z-50 flex flex-col transition-all duration-200 ease-in-out border-e border-border bg-sidebar text-sidebar-foreground shadow-xs select-none',
+          'fixed inset-y-0 start-0 z-50 flex h-dvh max-h-dvh flex-col pb-[env(safe-area-inset-bottom)] transition-all duration-200 ease-in-out border-e border-border bg-sidebar text-sidebar-foreground shadow-xs select-none',
           'lg:static lg:z-auto shrink-0',
           isOpen ? 'translate-x-0' : 'translate-x-full lg:translate-x-0',
           collapsed ? 'lg:w-[68px]' : 'lg:w-[252px]',

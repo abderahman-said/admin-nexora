@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -130,7 +131,8 @@ export function TestimonialFormDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleFormSubmit, handleFormErrors)} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit(handleFormSubmit, handleFormErrors)} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pt-2 pe-1">
           <TranslatableInput
             label="اسم العميل"
             nameAr="client_name.ar"
@@ -209,7 +211,8 @@ export function TestimonialFormDialog({
             aspectRatio="square"
           />
 
-          <div className="flex items-center justify-end gap-2 pt-4">
+          </div>
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -229,7 +232,7 @@ export function TestimonialFormDialog({
             >
               {editingItem ? 'حفظ التعديلات' : 'حفظ التقييم'}
             </LoadingButton>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

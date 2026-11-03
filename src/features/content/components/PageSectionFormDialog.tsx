@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -104,7 +105,8 @@ export function PageSectionFormDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleFormSubmit, handleFormErrors)} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit(handleFormSubmit, handleFormErrors)} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pt-2 pe-1">
           <TranslatableInput
             label="عنوان القسم"
             nameAr="title.ar"
@@ -133,7 +135,8 @@ export function PageSectionFormDialog({
             aspectRatio="video"
           />
 
-          <div className="flex items-center justify-end gap-2 pt-4">
+          </div>
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -151,7 +154,7 @@ export function PageSectionFormDialog({
             >
               حفظ التعديلات
             </LoadingButton>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

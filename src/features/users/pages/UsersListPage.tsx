@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import {
   useUsers,
@@ -10,6 +10,7 @@ import {
 } from '../hooks/useUsers';
 import { AdminUser, CreateUserPayload, UpdateUserPayload } from '../types/user.types';
 import { UserRole } from '@/features/auth/types/auth.types';
+import useAuthStore from '@/store/useAuthStore';
 import PageHeader from '@/components/shared/PageHeader';
 import DataTable from '@/components/shared/DataTable';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
@@ -18,8 +19,11 @@ import { getUsersColumns } from '../components/users.columns';
 import { CreateUserDialog } from '../components/CreateUserDialog';
 import { EditUserDialog } from '../components/EditUserDialog';
 import { ResetPasswordDialog } from '../components/ResetPasswordDialog';
+import { canManageUser } from '../lib/userPermissions';
 
 export default function UsersListPage() {
+  const currentRole = useAuthStore((s) => s.user?.role) as UserRole | undefined;
+  const canCreateUsers = currentRole === 'super_admin';
   const [search, setSearch] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -50,8 +54,13 @@ export default function UsersListPage() {
     });
   };
 
+  const canManage = useCallback(
+    (user: AdminUser) => canManageUser(currentRole, user.role),
+    [currentRole]
+  );
+
   const onEditUser = (dirty: Partial<UpdateUserPayload>) => {
-    if (!selectedUser) return;
+    if (!selectedUser || !canManage(selectedUser)) return;
     updateUser(dirty, {
       onSuccess: () => {
         setEditDialogOpen(false);
@@ -61,7 +70,7 @@ export default function UsersListPage() {
   };
 
   const onResetPass = (data: { password: string }) => {
-    if (!selectedUser) return;
+    if (!selectedUser || !canManage(selectedUser)) return;
     resetPassword(
       { id: selectedUser.id, password: data.password },
       {
@@ -74,7 +83,7 @@ export default function UsersListPage() {
   };
 
   const handleDelete = () => {
-    if (!selectedUser) return;
+    if (!selectedUser || !canManage(selectedUser)) return;
     deleteUser(selectedUser.id, {
       onSuccess: () => {
         setDeleteOpen(false);
@@ -87,21 +96,30 @@ export default function UsersListPage() {
     () =>
       getUsersColumns({
         changingRole,
-        onChangeRole: (id: string | number, role: UserRole) => changeRole({ id, role }),
+        canChangeRole: currentRole === 'super_admin',
+        canManage,
+        onChangeRole: (id: string | number, role: UserRole) => {
+          const target = users.find((user) => String(user.id) === String(id));
+          if (!target || !canManage(target) || role === 'super_admin') return;
+          changeRole({ id, role });
+        },
         onEdit: (user) => {
+          if (!canManage(user)) return;
           setSelectedUser(user);
           setEditDialogOpen(true);
         },
         onResetPassword: (user) => {
+          if (!canManage(user)) return;
           setSelectedUser(user);
           setResetDialogOpen(true);
         },
         onDelete: (user) => {
+          if (!canManage(user)) return;
           setSelectedUser(user);
           setDeleteOpen(true);
         },
       }),
-    [changingRole, changeRole]
+    [changingRole, changeRole, canManage, currentRole, users]
   );
 
   return (
@@ -110,13 +128,15 @@ export default function UsersListPage() {
         title="إدارة المستخدمين"
         description="إدارة حسابات المدراء والمشرفين والصلاحيات"
         action={
-          <Button
-            onClick={() => setCreateDialogOpen(true)}
-            className="rounded-xl flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>إضافة مستخدم جديد</span>
-          </Button>
+          canCreateUsers ? (
+            <Button
+              onClick={() => setCreateDialogOpen(true)}
+              className="rounded-xl flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>إضافة مستخدم جديد</span>
+            </Button>
+          ) : undefined
         }
       />
 

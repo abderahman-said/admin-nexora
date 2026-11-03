@@ -39,7 +39,7 @@ export const contentNav: NavigationItem[] = [
 ];
 
 export const adminNav: NavigationItem[] = [
-  { name: 'المستخدمين', href: '/dashboard/users', icon: Users, roles: ['super_admin'] },
+  { name: 'المستخدمين', href: '/dashboard/users', icon: Users, roles: ['super_admin', 'admin'] },
   { name: 'مكتبة الوسائط', href: '/dashboard/media', icon: Image },
   { name: 'الإعدادات', href: '/dashboard/settings', icon: Settings, roles: ['super_admin', 'admin'] },
 ];

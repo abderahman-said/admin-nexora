@@ -7,6 +7,7 @@ import { LoadingButton } from '@/components/shared/forms/LoadingButton';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -53,7 +54,8 @@ export function ResetPasswordDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleFormSubmit, handleFormErrors)} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit(handleFormSubmit, handleFormErrors)} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pt-2 pe-1">
           <PasswordInput
             name="password"
             label="كلمة المرور الجديدة"
@@ -65,8 +67,9 @@ export function ResetPasswordDialog({
               minLength: { value: 8, message: 'يجب ألا تقل عن 8 خانات' },
             }}
           />
+          </div>
 
-          <div className="flex items-center justify-end gap-2 pt-4">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -83,7 +86,7 @@ export function ResetPasswordDialog({
             >
               تعيين كلمة المرور
             </LoadingButton>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

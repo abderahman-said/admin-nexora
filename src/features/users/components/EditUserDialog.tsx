@@ -10,6 +10,7 @@ import { LoadingButton } from '@/components/shared/forms/LoadingButton';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -67,7 +68,8 @@ export function EditUserDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleFormSubmit, handleFormErrors)} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit(handleFormSubmit, handleFormErrors)} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pt-2 pe-1">
           <FormInput
             name="name"
             label="الاسم الكامل"
@@ -86,8 +88,9 @@ export function EditUserDialog({
             error={errors.email?.message}
             rules={{ required: 'البريد الإلكتروني مطلوب' }}
           />
+          </div>
 
-          <div className="flex items-center justify-end gap-2 pt-4">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -105,7 +108,7 @@ export function EditUserDialog({
             >
               حفظ التعديلات
             </LoadingButton>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

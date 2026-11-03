@@ -10,6 +10,7 @@ import FormSelect from '@/components/shared/forms/FormSelect';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -56,7 +57,8 @@ export function CreateUserDialog({
           <DialogTitle className="text-lg font-bold">إضافة مستخدم جديد</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleFormSubmit, handleFormErrors)} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit(handleFormSubmit, handleFormErrors)} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pt-2 pe-1">
           <FormInput
             name="name"
             label="الاسم الكامل"
@@ -104,8 +106,9 @@ export function CreateUserDialog({
             ]}
             error={errors.role?.message}
           />
+          </div>
 
-          <div className="flex items-center justify-end gap-2 pt-4">
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -122,7 +125,7 @@ export function CreateUserDialog({
             >
               حفظ المستخدم
             </LoadingButton>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -113,7 +114,8 @@ export function WorkStepFormDialog({
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleFormSubmit, handleFormErrors)} className="space-y-4 pt-2">
+        <form onSubmit={handleSubmit(handleFormSubmit, handleFormErrors)} className="flex min-h-0 flex-1 flex-col overflow-hidden">
+          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pt-2 pe-1">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-foreground">
               رقم الخطوة / الترتيب
@@ -165,7 +167,8 @@ export function WorkStepFormDialog({
             </label>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-4">
+          </div>
+          <DialogFooter>
             <Button
               type="button"
               variant="outline"
@@ -185,7 +188,7 @@ export function WorkStepFormDialog({
             >
               {editingStep ? 'حفظ التعديلات' : 'إضافة الخطوة'}
             </LoadingButton>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

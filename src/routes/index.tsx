@@ -117,11 +117,11 @@ export default function AppRoutes() {
               <Route path="dashboard/testimonials" element={<TestimonialsPage />} />
               <Route path="dashboard/page-sections" element={<PageSectionsPage />} />
 
-              {/* Users (Restricted to super_admin) */}
+              {/* Users: super admin manages accounts; admin can view and manage observers only */}
               <Route
                 path="dashboard/users"
                 element={
-                  <RoleRoute allowedRoles={['super_admin']}>
+                  <RoleRoute allowedRoles={['super_admin', 'admin']}>
                     <UsersListPage />
                   </RoleRoute>
                 }

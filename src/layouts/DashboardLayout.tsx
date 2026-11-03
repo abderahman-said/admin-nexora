@@ -12,7 +12,7 @@ export default function DashboardLayout() {
   const toggleCollapse = () => setCollapsed((prev) => !prev);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-background_main" dir="rtl">
+    <div className="flex h-dvh overflow-hidden bg-background_main" dir="rtl">
       <AppSidebar
         isOpen={mobileOpen}
         collapsed={collapsed}
