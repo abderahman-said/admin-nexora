@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Home, ArrowLeft, Search } from 'lucide-react';
+import { Home, ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {
   return (
@@ -16,11 +16,6 @@ export default function NotFound() {
           <span className="text-8xl sm:text-9xl font-black tracking-tighter text-muted/80">
             404
           </span>
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-card border border-border rounded-2xl p-3.5 shadow-elevated">
-              <Search className="h-7 w-7 text-primary" strokeWidth={1.75} />
-            </div>
-          </div>
         </div>
 
         {/* Text content */}
