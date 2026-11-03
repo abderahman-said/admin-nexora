@@ -7,10 +7,12 @@ import PageHeader from '@/components/shared/PageHeader';
 import DataTable from '@/components/shared/DataTable';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import { Button } from '@/components/ui/button';
+import { useCanWrite } from '@/hooks/useCanWrite';
 import { getServicesColumns } from '../components/services.columns';
 
 export default function ServicesListPage() {
   const navigate = useNavigate();
+  const canWrite = useCanWrite();
   const [search, setSearch] = useState('');
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -62,13 +64,15 @@ export default function ServicesListPage() {
         title="إدارة الخدمات"
         description="استعراض وتعديل باقة الخدمات التي تقدمها الشركة"
         action={
-          <Button
-            onClick={() => navigate('/dashboard/services/new')}
-            className="rounded-xl flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>إضافة خدمة جديدة</span>
-          </Button>
+          canWrite ? (
+            <Button
+              onClick={() => navigate('/dashboard/services/new')}
+              className="rounded-xl flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>إضافة خدمة جديدة</span>
+            </Button>
+          ) : undefined
         }
       />
 
@@ -80,8 +84,10 @@ export default function ServicesListPage() {
         onRetry={refetch}
         emptyTitle="لا توجد خدمات مضافة"
         emptyDescription="ابدأ بإضافة أول خدمة لتظهر في موقعك."
-        emptyActionLabel="إضافة خدمة الآن"
-        onEmptyAction={() => navigate('/dashboard/services/new')}
+        emptyActionLabel={canWrite ? 'إضافة خدمة الآن' : undefined}
+        onEmptyAction={
+          canWrite ? () => navigate('/dashboard/services/new') : undefined
+        }
         search={{
           value: search,
           onChange: setSearch,

@@ -47,6 +47,7 @@ export function getPageSectionsColumns({
     },
     {
       header: 'الإجراءات',
+      writeOnly: true,
       align: 'center',
       cell: (item) => (
         <Button

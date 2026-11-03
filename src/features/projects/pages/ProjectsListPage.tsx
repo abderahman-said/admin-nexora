@@ -7,10 +7,12 @@ import PageHeader from '@/components/shared/PageHeader';
 import DataTable from '@/components/shared/DataTable';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import { Button } from '@/components/ui/button';
+import { useCanWrite } from '@/hooks/useCanWrite';
 import { getProjectsColumns } from '../components/projects.columns';
 
 export default function ProjectsListPage() {
   const navigate = useNavigate();
+  const canWrite = useCanWrite();
   const [search, setSearch] = useState('');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -46,6 +48,7 @@ export default function ProjectsListPage() {
   const columns = useMemo(
     () =>
       getProjectsColumns({
+        canWrite,
         onToggleField: (id, field) => toggleProject({ id, field }),
         onEdit: (item) => navigate(`/dashboard/projects/${item.id}/edit`),
         onDelete: (item) => {
@@ -53,7 +56,7 @@ export default function ProjectsListPage() {
           setDeleteOpen(true);
         },
       }),
-    [toggleProject, navigate]
+    [canWrite, toggleProject, navigate]
   );
 
   return (
@@ -62,13 +65,15 @@ export default function ProjectsListPage() {
         title="معرض المشاريع"
         description="إدارة مشاريع وأعمال الشركة، تصنيفاتها وأجزائها وتفاصيلها البرمجية"
         action={
-          <Button
-            onClick={() => navigate('/dashboard/projects/new')}
-            className="rounded-xl flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>إضافة مشروع جديد</span>
-          </Button>
+          canWrite ? (
+            <Button
+              onClick={() => navigate('/dashboard/projects/new')}
+              className="rounded-xl flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>إضافة مشروع جديد</span>
+            </Button>
+          ) : undefined
         }
       />
 

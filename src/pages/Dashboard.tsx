@@ -8,6 +8,7 @@ import { useMessages } from '@/features/messages/hooks/useMessages';
 import { useUsers } from '@/features/users/hooks/useUsers';
 import PageHeader from '@/components/shared/PageHeader';
 import { Button } from '@/components/ui/button';
+import { useCanWrite } from '@/hooks/useCanWrite';
 import { DashboardStatGrid } from './dashboard/DashboardStatGrid';
 import { DashboardQuickActions } from './dashboard/DashboardQuickActions';
 import { DashboardRecentMessages } from './dashboard/DashboardRecentMessages';
@@ -21,6 +22,7 @@ const DashboardAnalyticsChart = lazy(() =>
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const canWrite = useCanWrite();
 
   const { data: servicesRes } = useServices();
   const { data: projectsRes } = useProjects();
@@ -54,25 +56,27 @@ export default function Dashboard() {
         title="نظرة عامة على النظام"
         description="متابعة الأداء وإحصائيات المحتوى ونشاط منصة Nexora"
         action={
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => navigate('/dashboard/projects/new')}
-              size="sm"
-              className="rounded-xl flex items-center gap-1.5 shadow-2xs"
-            >
-              <Plus className="w-4 h-4" />
-              <span>مشروع جديد</span>
-            </Button>
-            <Button
-              onClick={() => navigate('/dashboard/blog/new')}
-              variant="outline"
-              size="sm"
-              className="rounded-xl flex items-center gap-1.5 shadow-2xs"
-            >
-              <Plus className="w-4 h-4" />
-              <span>مقال جديد</span>
-            </Button>
-          </div>
+          canWrite ? (
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => navigate('/dashboard/projects/new')}
+                size="sm"
+                className="rounded-xl flex items-center gap-1.5 shadow-2xs"
+              >
+                <Plus className="w-4 h-4" />
+                <span>مشروع جديد</span>
+              </Button>
+              <Button
+                onClick={() => navigate('/dashboard/blog/new')}
+                variant="outline"
+                size="sm"
+                className="rounded-xl flex items-center gap-1.5 shadow-2xs"
+              >
+                <Plus className="w-4 h-4" />
+                <span>مقال جديد</span>
+              </Button>
+            </div>
+          ) : undefined
         }
       />
 

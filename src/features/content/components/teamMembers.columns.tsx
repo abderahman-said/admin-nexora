@@ -85,6 +85,7 @@ export function getTeamMembersColumns({
     },
     {
       header: 'الإجراءات',
+      writeOnly: true,
       align: 'center',
       cell: (item) => (
         <div className="flex items-center justify-center gap-1.5">

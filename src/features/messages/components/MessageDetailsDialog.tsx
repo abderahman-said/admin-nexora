@@ -13,6 +13,7 @@ interface MessageDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   message: ContactMessage | null;
+  canWrite: boolean;
   onUpdateStatus: (status: MessageStatus) => void;
   isUpdatingStatus: boolean;
 }
@@ -21,6 +22,7 @@ export function MessageDetailsDialog({
   open,
   onOpenChange,
   message,
+  canWrite,
   onUpdateStatus,
   isUpdatingStatus,
 }: MessageDetailsDialogProps) {
@@ -89,31 +91,35 @@ export function MessageDetailsDialog({
           </div>
 
           <div className="flex items-center justify-between pt-4 border-t">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground">تغيير الحالة:</span>
-              {(['new', 'read', 'in_progress', 'closed'] as MessageStatus[]).map(
-                (st) => (
-                  <button
-                    key={st}
-                    disabled={isUpdatingStatus || message.status === st}
-                    onClick={() => onUpdateStatus(st)}
-                    className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${
-                      message.status === st
-                        ? 'border-primary bg-primary text-primary-foreground font-bold'
-                        : 'border-border hover:bg-muted text-muted-foreground'
-                    }`}
-                  >
-                    {st === 'new'
-                      ? 'جديدة'
-                      : st === 'read'
-                      ? 'مقروءة'
-                      : st === 'in_progress'
-                      ? 'قيد المتابعة'
-                      : 'مغلقة'}
-                  </button>
-                )
-              )}
-            </div>
+            {canWrite ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">تغيير الحالة:</span>
+                {(['new', 'read', 'in_progress', 'closed'] as MessageStatus[]).map(
+                  (st) => (
+                    <button
+                      key={st}
+                      disabled={isUpdatingStatus || message.status === st}
+                      onClick={() => onUpdateStatus(st)}
+                      className={`text-xs px-2.5 py-1 rounded-lg border transition-all ${
+                        message.status === st
+                          ? 'border-primary bg-primary text-primary-foreground font-bold'
+                          : 'border-border hover:bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {st === 'new'
+                        ? 'جديدة'
+                        : st === 'read'
+                        ? 'مقروءة'
+                        : st === 'in_progress'
+                        ? 'قيد المتابعة'
+                        : 'مغلقة'}
+                    </button>
+                  )
+                )}
+              </div>
+            ) : (
+              <span />
+            )}
 
             <Button
               variant="outline"

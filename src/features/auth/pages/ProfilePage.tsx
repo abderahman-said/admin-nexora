@@ -1,14 +1,37 @@
-import { Shield, Mail, Calendar } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { Shield, KeyRound, Mail, Calendar } from 'lucide-react';
 import useAuthStore from '@/store/useAuthStore';
-import { useProfile } from '../hooks/useAuthMutations';
+import { useChangePassword, useProfile } from '../hooks/useAuthMutations';
+import { ChangePasswordPayload } from '../types/auth.types';
 import PageHeader from '@/components/shared/PageHeader';
+import { PasswordInput } from '@/components/shared/forms/PasswordInput';
+import { LoadingButton } from '@/components/shared/forms/LoadingButton';
 import StatusBadge from '@/components/shared/StatusBadge';
 
 export default function ProfilePage() {
   const storeUser = useAuthStore((s) => s.user);
   const { data: profileResponse, isLoading: profileLoading } = useProfile();
+  const { mutate: changePassword, isPending: passwordChanging } = useChangePassword();
 
   const user = profileResponse?.data || storeUser;
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    formState: { errors },
+  } = useForm<ChangePasswordPayload>({ mode: 'onTouched' });
+
+  const newPassword = watch('new_password');
+
+  const onSubmitPassword = (data: ChangePasswordPayload) => {
+    changePassword(data, {
+      onSuccess: () => {
+        reset();
+      },
+    });
+  };
 
   if (profileLoading && !user) {
     return (
@@ -22,7 +45,7 @@ export default function ProfilePage() {
     <div className="max-w-3xl mx-auto space-y-6 p-4 md:p-6 lg:p-8" dir="rtl">
       <PageHeader
         title="الملف الشخصي"
-        description="عرض معلومات الحساب فقط. لا يمكن تعديل البيانات الشخصية."
+        description="بيانات الحساب للعرض فقط، مع إمكانية تغيير كلمة المرور."
       />
 
       <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-6">
@@ -56,6 +79,62 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-6">
+        <div className="flex items-center gap-3 border-b pb-4">
+          <div className="p-2 rounded-xl bg-primary/10 text-primary">
+            <KeyRound className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="font-bold text-foreground text-lg">تغيير كلمة المرور</h3>
+            <p className="text-xs text-muted-foreground">تأكد من اختيار كلمة مرور قوية وغير مكررة</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmitPassword)} className="space-y-4 max-w-lg">
+          <PasswordInput
+            name="current_password"
+            label="كلمة المرور الحالية"
+            placeholder="أدخل كلمة المرور الحالية"
+            register={register}
+            error={errors.current_password?.message}
+            rules={{ required: 'كلمة المرور الحالية مطلوبة' }}
+          />
+
+          <PasswordInput
+            name="new_password"
+            label="كلمة المرور الجديدة"
+            placeholder="أدخل كلمة المرور الجديدة"
+            register={register}
+            error={errors.new_password?.message}
+            rules={{
+              required: 'كلمة المرور الجديدة مطلوبة',
+              minLength: { value: 8, message: 'يجب ألا تقل عن 8 خانات' },
+            }}
+          />
+
+          <PasswordInput
+            name="new_password_confirmation"
+            label="تأكيد كلمة المرور الجديدة"
+            placeholder="أعد إدخال كلمة المرور الجديدة"
+            register={register}
+            error={errors.new_password_confirmation?.message}
+            rules={{
+              required: 'تأكيد كلمة المرور مطلوب',
+              validate: (val: string) => val === newPassword || 'كلمتا المرور غير متطابقتين',
+            }}
+          />
+
+          <LoadingButton
+            type="submit"
+            loading={passwordChanging}
+            loadingText="جاري الحفظ..."
+            className="mt-2 w-full sm:w-auto px-6 h-11"
+          >
+            تحديث كلمة المرور
+          </LoadingButton>
+        </form>
       </div>
     </div>
   );

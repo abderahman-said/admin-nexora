@@ -7,12 +7,14 @@ import { getMediaUrl } from '@/lib/utils';
 import { Project } from '../types/project.types';
 
 interface GetProjectsColumnsProps {
+  canWrite: boolean;
   onToggleField: (id: number, field: 'is_active' | 'is_featured') => void;
   onEdit: (item: Project) => void;
   onDelete: (item: Project) => void;
 }
 
 export function getProjectsColumns({
+  canWrite,
   onToggleField,
   onEdit,
   onDelete,
@@ -58,19 +60,26 @@ export function getProjectsColumns({
     {
       header: 'مميز',
       align: 'center',
-      cell: (item) => (
-        <button
-          onClick={() => onToggleField(item.id, 'is_featured')}
-          className={`p-1.5 rounded-lg transition-colors ${
-            item.is_featured
-              ? 'text-amber-500 bg-amber-500/10'
-              : 'text-slate-300 hover:text-slate-500'
-          }`}
-          title={item.is_featured ? 'مشروع مميز' : 'تمييز المشروع'}
-        >
-          <Star className="w-4 h-4 fill-current" />
-        </button>
-      ),
+      cell: (item) =>
+        canWrite ? (
+          <button
+            onClick={() => onToggleField(item.id, 'is_featured')}
+            className={`p-1.5 rounded-lg transition-colors ${
+              item.is_featured
+                ? 'text-amber-500 bg-amber-500/10'
+                : 'text-slate-300 hover:text-slate-500'
+            }`}
+            title={item.is_featured ? 'مشروع مميز' : 'تمييز المشروع'}
+          >
+            <Star className="w-4 h-4 fill-current" />
+          </button>
+        ) : (
+          <Star
+            className={`w-4 h-4 fill-current ${
+              item.is_featured ? 'text-amber-500' : 'text-slate-300'
+            }`}
+          />
+        ),
     },
     {
       header: 'الحالة',
@@ -79,6 +88,7 @@ export function getProjectsColumns({
     },
     {
       header: 'الإجراءات',
+      writeOnly: true,
       align: 'center',
       cell: (item) => (
         <div className="flex items-center justify-center gap-1.5">

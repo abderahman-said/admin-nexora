@@ -12,10 +12,12 @@ import PageHeader from '@/components/shared/PageHeader';
 import DataTable from '@/components/shared/DataTable';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import { Button } from '@/components/ui/button';
+import { useCanWrite } from '@/hooks/useCanWrite';
 import { getTestimonialsColumns } from '../components/testimonials.columns';
 import { TestimonialFormDialog } from '../components/TestimonialFormDialog';
 
 export default function TestimonialsPage() {
+  const canWrite = useCanWrite();
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Testimonial | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -86,16 +88,18 @@ export default function TestimonialsPage() {
         title="آراء وتقييمات العملاء"
         description="إدارة التقييمات والتوصيات الظاهرة في الصفحة الرئيسية"
         action={
-          <Button
-            onClick={() => {
-              setEditingItem(null);
-              setFormOpen(true);
-            }}
-            className="rounded-xl flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>إضافة رأي عميل</span>
-          </Button>
+          canWrite ? (
+            <Button
+              onClick={() => {
+                setEditingItem(null);
+                setFormOpen(true);
+              }}
+              className="rounded-xl flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>إضافة رأي عميل</span>
+            </Button>
+          ) : undefined
         }
       />
 

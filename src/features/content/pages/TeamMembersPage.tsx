@@ -12,10 +12,12 @@ import PageHeader from '@/components/shared/PageHeader';
 import DataTable from '@/components/shared/DataTable';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import { Button } from '@/components/ui/button';
+import { useCanWrite } from '@/hooks/useCanWrite';
 import { getTeamMembersColumns } from '../components/teamMembers.columns';
 import { TeamMemberFormDialog } from '../components/TeamMemberFormDialog';
 
 export default function TeamMembersPage() {
+  const canWrite = useCanWrite();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -86,16 +88,18 @@ export default function TeamMembersPage() {
         title="فريق العمل"
         description="إدارة بطاقات ومعلومات أعضاء وكوادر الشركة"
         action={
-          <Button
-            onClick={() => {
-              setEditingMember(null);
-              setModalOpen(true);
-            }}
-            className="rounded-xl flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>إضافة عضو جديد</span>
-          </Button>
+          canWrite ? (
+            <Button
+              onClick={() => {
+                setEditingMember(null);
+                setModalOpen(true);
+              }}
+              className="rounded-xl flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>إضافة عضو جديد</span>
+            </Button>
+          ) : undefined
         }
       />
 

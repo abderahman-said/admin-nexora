@@ -8,10 +8,12 @@ import { ContactMessage, MessageStatus } from '../types/message.types';
 import PageHeader from '@/components/shared/PageHeader';
 import DataTable from '@/components/shared/DataTable';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
+import { useCanWrite } from '@/hooks/useCanWrite';
 import { getMessagesColumns } from '../components/messages.columns';
 import { MessageDetailsDialog } from '../components/MessageDetailsDialog';
 
 export default function MessagesListPage() {
+  const canWrite = useCanWrite();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
@@ -42,7 +44,7 @@ export default function MessagesListPage() {
   const handleOpenDetails = (item: ContactMessage) => {
     setSelectedMessage(item);
     setViewDialogOpen(true);
-    if (item.status === 'new') {
+    if (canWrite && item.status === 'new') {
       updateStatus({ id: item.id, status: 'read' });
     }
   };
@@ -72,13 +74,14 @@ export default function MessagesListPage() {
   const columns = useMemo(
     () =>
       getMessagesColumns({
+        canWrite,
         onOpenDetails: handleOpenDetails,
         onDelete: (item) => {
           setSelectedMessage(item);
           setDeleteOpen(true);
         },
       }),
-    []
+    [canWrite]
   );
 
   return (
@@ -131,6 +134,7 @@ export default function MessagesListPage() {
         open={viewDialogOpen}
         onOpenChange={setViewDialogOpen}
         message={selectedMessage}
+        canWrite={canWrite}
         onUpdateStatus={handleUpdateStatus}
         isUpdatingStatus={updatingStatus}
       />

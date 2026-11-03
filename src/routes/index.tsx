@@ -93,20 +93,62 @@ export default function AppRoutes() {
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="dashboard/profile" element={<ProfilePage />} />
 
-              {/* Services */}
+              {/* Services: create/edit requires write access (observer is read-only) */}
               <Route path="dashboard/services" element={<ServicesListPage />} />
-              <Route path="dashboard/services/new" element={<ServiceFormPage />} />
-              <Route path="dashboard/services/:id/edit" element={<ServiceFormPage />} />
+              <Route
+                path="dashboard/services/new"
+                element={
+                  <RoleRoute allowedRoles={['super_admin', 'admin']}>
+                    <ServiceFormPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="dashboard/services/:id/edit"
+                element={
+                  <RoleRoute allowedRoles={['super_admin', 'admin']}>
+                    <ServiceFormPage />
+                  </RoleRoute>
+                }
+              />
 
               {/* Projects */}
               <Route path="dashboard/projects" element={<ProjectsListPage />} />
-              <Route path="dashboard/projects/new" element={<ProjectFormPage />} />
-              <Route path="dashboard/projects/:id/edit" element={<ProjectFormPage />} />
+              <Route
+                path="dashboard/projects/new"
+                element={
+                  <RoleRoute allowedRoles={['super_admin', 'admin']}>
+                    <ProjectFormPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="dashboard/projects/:id/edit"
+                element={
+                  <RoleRoute allowedRoles={['super_admin', 'admin']}>
+                    <ProjectFormPage />
+                  </RoleRoute>
+                }
+              />
 
               {/* Blog / Posts */}
               <Route path="dashboard/blog" element={<PostsListPage />} />
-              <Route path="dashboard/blog/new" element={<PostFormPage />} />
-              <Route path="dashboard/blog/:id/edit" element={<PostFormPage />} />
+              <Route
+                path="dashboard/blog/new"
+                element={
+                  <RoleRoute allowedRoles={['super_admin', 'admin']}>
+                    <PostFormPage />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="dashboard/blog/:id/edit"
+                element={
+                  <RoleRoute allowedRoles={['super_admin', 'admin']}>
+                    <PostFormPage />
+                  </RoleRoute>
+                }
+              />
 
               {/* Messages */}
               <Route path="dashboard/messages" element={<MessagesListPage />} />

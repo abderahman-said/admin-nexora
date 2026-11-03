@@ -5,11 +5,13 @@ import { Button } from '@/components/ui/button';
 import { ContactMessage } from '../types/message.types';
 
 interface GetMessagesColumnsProps {
+  canWrite: boolean;
   onOpenDetails: (item: ContactMessage) => void;
   onDelete: (item: ContactMessage) => void;
 }
 
 export function getMessagesColumns({
+  canWrite,
   onOpenDetails,
   onDelete,
 }: GetMessagesColumnsProps): Column<ContactMessage>[] {
@@ -79,15 +81,17 @@ export function getMessagesColumns({
             <Eye className="w-4 h-4" />
           </Button>
 
-          <Button
-            size="icon"
-            variant="ghost"
-            title="حذف"
-            className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-            onClick={() => onDelete(item)}
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+          {canWrite && (
+            <Button
+              size="icon"
+              variant="ghost"
+              title="حذف"
+              className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+              onClick={() => onDelete(item)}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
         </div>
       ),
     },

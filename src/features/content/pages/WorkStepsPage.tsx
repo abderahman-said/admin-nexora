@@ -12,10 +12,12 @@ import PageHeader from '@/components/shared/PageHeader';
 import DataTable from '@/components/shared/DataTable';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import { Button } from '@/components/ui/button';
+import { useCanWrite } from '@/hooks/useCanWrite';
 import { getWorkStepsColumns } from '../components/workSteps.columns';
 import { WorkStepFormDialog } from '../components/WorkStepFormDialog';
 
 export default function WorkStepsPage() {
+  const canWrite = useCanWrite();
   const [formOpen, setFormOpen] = useState(false);
   const [editingStep, setEditingStep] = useState<WorkStep | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -86,16 +88,18 @@ export default function WorkStepsPage() {
         title="خطوات ومراحل العمل"
         description="إدارة خطوات سير العمل وطريقة تقديم الخدمات المعروضة بالموقع"
         action={
-          <Button
-            onClick={() => {
-              setEditingStep(null);
-              setFormOpen(true);
-            }}
-            className="rounded-xl flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>إضافة خطوة جديدة</span>
-          </Button>
+          canWrite ? (
+            <Button
+              onClick={() => {
+                setEditingStep(null);
+                setFormOpen(true);
+              }}
+              className="rounded-xl flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>إضافة خطوة جديدة</span>
+            </Button>
+          ) : undefined
         }
       />
 

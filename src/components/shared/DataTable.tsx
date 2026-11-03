@@ -4,6 +4,7 @@ import TableSkeleton from './TableSkeleton';
 import EmptyState from './EmptyState';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useCanWrite } from '@/hooks/useCanWrite';
 import { DataTableToolbar } from './data-table/DataTableToolbar';
 import { DataTableBulkActions } from './data-table/DataTableBulkActions';
 import { DataTablePaginationBar } from './data-table/DataTablePaginationBar';
@@ -15,6 +16,8 @@ export interface Column<T> {
   className?: string;
   align?: 'right' | 'center' | 'left';
   hideable?: boolean;
+  /** Hidden for roles that cannot mutate data (observer). */
+  writeOnly?: boolean;
 }
 
 export interface DataTableProps<T> {
@@ -64,6 +67,8 @@ export default function DataTable<T>({
   onSelectionChange,
   bulkActions,
 }: DataTableProps<T>) {
+  const canWrite = useCanWrite();
+
   // Density state: 'comfortable' (default) vs 'compact'
   const [density, setDensity] = useState<'comfortable' | 'compact'>('comfortable');
 
@@ -76,7 +81,9 @@ export default function DataTable<T>({
     );
   };
 
-  const visibleColumns = columns.filter((_, idx) => !hiddenColumnIndices.includes(idx));
+  const visibleColumns = columns.filter(
+    (col, idx) => !hiddenColumnIndices.includes(idx) && (canWrite || !col.writeOnly)
+  );
 
   // Selection helpers
   const allSelected =

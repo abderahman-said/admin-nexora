@@ -7,10 +7,12 @@ import PageHeader from '@/components/shared/PageHeader';
 import DataTable from '@/components/shared/DataTable';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import { Button } from '@/components/ui/button';
+import { useCanWrite } from '@/hooks/useCanWrite';
 import { getPostsColumns } from '../components/posts.columns';
 
 export default function PostsListPage() {
   const navigate = useNavigate();
+  const canWrite = useCanWrite();
   const [search, setSearch] = useState('');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -60,13 +62,15 @@ export default function PostsListPage() {
         title="المقالات والمدونة"
         description="إدارة ونشر مقالات وأخبار الشركة وتحديثاتها التقنية"
         action={
-          <Button
-            onClick={() => navigate('/dashboard/blog/new')}
-            className="rounded-xl flex items-center gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>كتابة مقال جديد</span>
-          </Button>
+          canWrite ? (
+            <Button
+              onClick={() => navigate('/dashboard/blog/new')}
+              className="rounded-xl flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span>كتابة مقال جديد</span>
+            </Button>
+          ) : undefined
         }
       />
 

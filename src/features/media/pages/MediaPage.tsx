@@ -6,9 +6,11 @@ import PageHeader from '@/components/shared/PageHeader';
 import EmptyState from '@/components/shared/EmptyState';
 import ConfirmDialog from '@/components/shared/ConfirmDialog';
 import { Button } from '@/components/ui/button';
+import { useCanWrite } from '@/hooks/useCanWrite';
 import { getMediaUrl } from '@/lib/utils';
 
 export default function MediaPage() {
+  const canWrite = useCanWrite();
   const [selectedFolder, setSelectedFolder] = useState<string>('');
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<MediaItem | null>(null);
@@ -103,16 +105,18 @@ export default function MediaPage() {
                         <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     )}
-                    <button
-                      onClick={() => {
-                        setSelectedMedia(item);
-                        setDeleteOpen(true);
-                      }}
-                      className="p-1.5 rounded-lg bg-destructive/80 text-white hover:bg-destructive transition-colors"
-                      title="حذف"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    {canWrite && (
+                      <button
+                        onClick={() => {
+                          setSelectedMedia(item);
+                          setDeleteOpen(true);
+                        }}
+                        className="p-1.5 rounded-lg bg-destructive/80 text-white hover:bg-destructive transition-colors"
+                        title="حذف"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
 
                   <div>
