@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Menu, Moon, Sun, PanelLeftClose, PanelLeft, Search } from 'lucide-react';
+import { Menu, Moon, Sun, PanelLeftClose, PanelLeft } from 'lucide-react';
 import useThemeStore from '@/store/useThemeStore';
 import LanguageViewToggle from '@/components/shared/LanguageViewToggle';
 import Breadcrumbs from '@/components/shared/Breadcrumbs';
@@ -17,15 +17,6 @@ export default function TopNavbar({
   collapsed,
 }: TopNavbarProps) {
   const { theme, toggleTheme } = useThemeStore();
-
-  const handleQuickSearchClick = () => {
-    const searchInput = document.querySelector(
-      'input[type="text"][placeholder*="بحث"]'
-    ) as HTMLInputElement;
-    if (searchInput) {
-      searchInput.focus();
-    }
-  };
 
   return (
     <header className="topbar-glass flex h-16 shrink-0 items-center justify-between gap-4 px-4 md:px-6 sticky top-0 z-30">
@@ -65,22 +56,8 @@ export default function TopNavbar({
 
       {/* End: Search trigger + Lang + Theme + User Menu */}
       <div className="flex items-center gap-2 sm:gap-2.5">
-        {/* Quick Search Shortcut Trigger */}
-        <button
-          onClick={handleQuickSearchClick}
-          className="hidden md:flex items-center gap-2 h-9 px-3 rounded-xl border border-border bg-card/60 hover:bg-muted text-muted-foreground hover:text-foreground text-xs transition-colors"
-          title="بحث سريع"
-        >
-          <Search className="h-3.5 w-3.5" />
-          <span>بحث سريع...</span>
-          <kbd className="ms-2 px-1.5 py-0.5 rounded bg-muted text-[10px] font-mono text-muted-foreground border border-border">
-            ⌘K
-          </kbd>
-        </button>
-
         {/* Bilingual data display mode toggle */}
         <LanguageViewToggle />
-
         {/* Dark / Light Mode Switcher */}
         <button
           onClick={toggleTheme}
